@@ -215,8 +215,8 @@ if not st.session_state.logged_in:
         </div>
         """, unsafe_allow_html=True)
         
-        utente_input = st.text_input("", placeholder="Nome utente", label_visibility="collapsed")
-        password_input = st.text_input("", placeholder="Password", type="password", label_visibility="collapsed")
+        utente_input = st.text_input("Utente", placeholder="Nome utente", label_visibility="collapsed")
+        password_input = st.text_input("Password", placeholder="Password", type="password", label_visibility="collapsed")
         st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
         
         if st.button("Accedi", use_container_width=True, type="primary"):
