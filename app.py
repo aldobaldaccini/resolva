@@ -136,8 +136,8 @@ div[data-testid="stSidebar"] .stTextInput input {
 .badge { display:inline-block; padding:4px 11px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; }
 .badge-accolto   { background:#dcfce7; color:#15803d; }
 .badge-rigettato { background:#fee2e2; color:#b91c1c; }
-.badge-analisi   { background:#dbeafe; color:#1d4ed8; }
-.badge-draft     { background:#fef9c3; color:#92400e; }
+.badge-analisi   { background:#e2e8f0; color:#475569; }
+.badge-draft     { background:#1e293b; color:#ffffff; }
 
 .fascicolo-header { background:#1e293b; border-radius:10px; padding:24px 32px; margin-bottom:20px;
     display:flex; align-items:center; justify-content:space-between; }
@@ -245,44 +245,65 @@ if search_query and not df.empty:
 if st.session_state.page == "Reclami attivi":
     data_view = df[df['Stato'] == "Attivo"].reset_index(drop=True)
 
+    # Titolo + contatore + cerca sulla stessa riga
     n = len(data_view)
-    st.markdown(
-        f'<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:20px;">'
-        f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-        f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Reclami attivi</span>'
-        f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#64748b;font-weight:500;">'
-        f'{n} pratiche</span></div>',
-        unsafe_allow_html=True)
+    th, _, tc = st.columns([3, 1, 2])
+    with th:
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Reclami attivi</span>'
+            f'<span style="background:#1e293b;color:#fff;font-family:Inter,sans-serif;font-size:12px;'
+            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'align-items:center;justify-content:center;">{n}</span></div>',
+            unsafe_allow_html=True)
+    with tc:
+        cerca = st.text_input("", placeholder="🔍 Cerca cliente...", label_visibility="collapsed")
 
-    cerca = st.text_input("", placeholder="🔍  Cerca per nome cliente...", label_visibility="collapsed")
     if cerca:
         data_view = data_view[data_view["Cliente"].str.contains(cerca, case=False, na=False)].reset_index(drop=True)
 
     if data_view.empty:
-        st.info("Nessun reclamo attivo.")
+        st.info("Nessun reclamo trovato.")
     else:
-        col_h = st.columns([2,1,2,1,1.5,1,0.5])
-        headers = ["ID Pratica","Data","Cliente","Valore","Operatore","Stato",""]
-        for i, h in enumerate(headers):
-            col_h[i].markdown(
-                f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
-                f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h}</span>',
-                unsafe_allow_html=True)
-        st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
+        # Header
+        st.markdown(
+            '<div style="display:grid;grid-template-columns:2fr 1fr 2fr 1fr 1.5fr 1fr;'
+            'background:#1e293b;border-radius:8px 8px 0 0;padding:11px 20px;margin-top:12px;">' +
+            ''.join(f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;'
+                    f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h}</span>'
+                    for h in ["ID Pratica","Data","Cliente","Valore","Operatore","Stato"]) +
+            '</div>',
+            unsafe_allow_html=True)
+
+        # Righe cliccabili
+        st.markdown("""<style>
+        div[data-testid="stHorizontalBlock"] .row-widget.stButton button {
+            background:white; border:none; border-bottom:1px solid #f1f5f9;
+            border-radius:0; padding:14px 0; width:100%; text-align:left;
+            font-family:Inter,sans-serif; color:#1e293b; cursor:pointer;
+        }
+        div[data-testid="stHorizontalBlock"] .row-widget.stButton button:hover {
+            background:#f8fafc;
+        }
+        </style>""", unsafe_allow_html=True)
 
         for _, row in data_view.iterrows():
-            c1,c2,c3,c4,c5,c6,c7 = st.columns([2,1,2,1,1.5,1,0.5])
-            c1.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span>', unsafe_allow_html=True)
-            c2.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span>', unsafe_allow_html=True)
-            c3.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span>', unsafe_allow_html=True)
-            c4.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {row["Valore"]:,}</span>', unsafe_allow_html=True)
-            c5.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Operatore"]}</span>', unsafe_allow_html=True)
-            c6.markdown(badge(row["Esito"]), unsafe_allow_html=True)
-            if c7.button("→", key=f"open_{row['ID']}"):
-                st.session_state.id_selezionato = row["ID"]
-                st.session_state.page = "Dettaglio pratica"
-                st.rerun()
-            st.markdown('<hr style="margin:2px 0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
+            rid = row["ID"]
+            c1,c2,c3,c4,c5,c6,c7 = st.columns([2,1,2,1,1.5,1.2,0.4])
+            c1.markdown(f'<div style="background:white;padding:14px 0 14px 0;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;border-bottom:1px solid #f1f5f9;">{rid}</div>', unsafe_allow_html=True)
+            c2.markdown(f'<div style="background:white;padding:14px 0;font-family:Inter,sans-serif;font-size:13px;color:#475569;border-bottom:1px solid #f1f5f9;">{row["Data"]}</div>', unsafe_allow_html=True)
+            c3.markdown(f'<div style="background:white;padding:14px 0;font-family:Inter,sans-serif;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;">{row["Cliente"]}</div>', unsafe_allow_html=True)
+            c4.markdown(f'<div style="background:white;padding:14px 0;font-family:Inter,sans-serif;font-size:13px;color:#475569;border-bottom:1px solid #f1f5f9;">€ {row["Valore"]:,}</div>', unsafe_allow_html=True)
+            c5.markdown(f'<div style="background:white;padding:14px 0;font-family:Inter,sans-serif;font-size:13px;color:#475569;border-bottom:1px solid #f1f5f9;">{row["Operatore"]}</div>', unsafe_allow_html=True)
+            c6.markdown(f'<div style="background:white;padding:10px 0;border-bottom:1px solid #f1f5f9;">{badge(row["Esito"])}</div>', unsafe_allow_html=True)
+            with c7:
+                if st.button("→", key=f"open_{rid}"):
+                    st.session_state.id_selezionato = rid
+                    st.session_state.page = "Dettaglio pratica"
+                    st.rerun()
+
+        st.markdown('<div style="height:8px;background:white;border-radius:0 0 8px 8px;"></div>', unsafe_allow_html=True)
 
 # ============================================================
 # 2. RECLAMI ARCHIVIATI
