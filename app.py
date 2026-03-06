@@ -125,7 +125,7 @@ div[data-testid="stSidebar"] .stTextInput input {
     box-shadow:0 2px 12px rgba(0,0,0,.10); border-radius:8px; overflow:hidden; margin-bottom:8px; }
 .pro-table thead tr th { background:#1e293b; color:#fff; padding:13px 16px; font-size:11px;
     text-transform:uppercase; letter-spacing:.10em; font-weight:700; text-align:left;
-    border-bottom:2px solid #3B82F6; white-space:nowrap; }
+    border-bottom:none; white-space:nowrap; }
 .pro-table tbody tr td { padding:13px 16px; font-size:14px; color:#1e293b;
     border-bottom:1px solid #e2e8f0; background:#fff; vertical-align:middle; }
 .pro-table tbody tr:last-child td { border-bottom:none; }
@@ -293,6 +293,18 @@ if st.session_state.page == "Reclami attivi":
             }
             div[data-testid="stMainBlockContainer"] button[kind="secondary"]:hover {
                 background:#2563eb !important;
+            }
+            </style>""", unsafe_allow_html=True)
+            st.markdown("""<style>
+            /* force button same height as selectbox */
+            div[data-testid="stHorizontalBlock"]:last-of-type div[data-testid="stButton"] {
+                display:flex; align-items:center;
+            }
+            div[data-testid="stHorizontalBlock"]:last-of-type div[data-testid="stButton"] button {
+                height:46px !important; margin-top:0 !important; padding-top:0 !important; padding-bottom:0 !important;
+            }
+            div[data-testid="stHorizontalBlock"]:last-of-type div[data-baseweb="select"] > div {
+                height:46px !important; min-height:46px !important;
             }
             </style>""", unsafe_allow_html=True)
             if st.button("Apri pratica →", use_container_width=True):
