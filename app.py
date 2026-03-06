@@ -184,9 +184,63 @@ div[data-testid="stSidebar"] .stTextInput input {
 # ── AUTO REFRESH ogni 20 secondi ──
 st_autorefresh(interval=20000, key="autorefresh")
 
+# ── LOGIN GATE ──
+if not st.session_state.logged_in:
+    st.markdown("""
+    <style>
+    [data-testid="stSidebar"] { display:none; }
+    .stApp { background:#1e293b; }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        st.markdown("""
+        <div style="margin-top:80px;text-align:center;margin-bottom:40px;">
+            <p style="font-family:Playfair Display,serif;font-size:32px;font-weight:700;
+            color:white;letter-spacing:.18em;text-transform:uppercase;margin-bottom:4px;">
+            <span style="color:#3B82F6;">R E</span>&nbsp;&nbsp;S O L V A</p>
+            <p style="font-family:Inter,sans-serif;font-size:12px;color:#64748b;
+            letter-spacing:.15em;text-transform:uppercase;">Gestione Reclami Bancari</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        utente_input = st.text_input("", placeholder="Nome utente", label_visibility="collapsed")
+        password_input = st.text_input("", placeholder="Password", type="password", label_visibility="collapsed")
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        
+        if st.button("Accedi", use_container_width=True, type="primary"):
+            u = utente_input.strip().lower()
+            if u in UTENTI and UTENTI[u]["password"] == password_input:
+                st.session_state.logged_in = True
+                st.session_state.utente = UTENTI[u]["nome"]
+                st.session_state.ruolo = UTENTI[u]["ruolo"]
+                st.session_state.page = "Dashboard"
+                st.rerun()
+            else:
+                st.error("Credenziali non valide.")
+        
+        st.markdown("""
+        <p style="font-family:Inter,sans-serif;font-size:11px;color:#475569;
+        text-align:center;margin-top:24px;">
+        Demo: <b style="color:#64748b">operatore</b> o <b style="color:#64748b">responsabile</b> · password: resolva2026
+        </p>""", unsafe_allow_html=True)
+    st.stop()
+
 # ── STATO ──
 if 'page' not in st.session_state:
-    st.session_state.page = "Reclami attivi"
+    st.session_state.page = "Dashboard"
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+if 'utente' not in st.session_state:
+    st.session_state.utente = ""
+if 'ruolo' not in st.session_state:
+    st.session_state.ruolo = ""
+
+UTENTI = {
+    "operatore": {"password": "resolva2026", "ruolo": "Operatore", "nome": "M. Rossi"},
+    "responsabile": {"password": "resolva2026", "ruolo": "Responsabile", "nome": "A. Baldaccini"},
+}
 
 OPERATORI = ["M. Rossi", "E. Verdi", "F. Bruno", "C. Marino"]
 
@@ -217,10 +271,27 @@ def build_table(data, cols, headers):
     ths = "".join(f"<th>{h}</th>" for h in headers)
     return f'<table class="pro-table"><thead><tr>{ths}</tr></thead><tbody>{rows}</tbody></table>'
 
+# ── TOPBAR ──
+st.markdown(f"""
+<div style="position:fixed;top:0;left:0;right:0;height:48px;background:#1e293b;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 32px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3);">
+    <span style="font-family:Playfair Display,serif;font-size:14px;font-weight:700;
+    color:white;text-transform:uppercase;letter-spacing:.15em;">
+    <span style="color:#3B82F6;">R E</span>&nbsp;&nbsp;S O L V A</span>
+    <span style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;">
+    {st.session_state.utente} &nbsp;·&nbsp; 
+    <span style="color:#3B82F6;">{st.session_state.ruolo}</span></span>
+</div>
+<div style="height:48px;"></div>
+""", unsafe_allow_html=True)
+
 # ── SIDEBAR ──
 with st.sidebar:
     st.markdown('<p class="brand-title"><span style="color:#3B82F6;letter-spacing:4px">R E</span><span style="letter-spacing:4px"> &nbsp;S O L V A</span></p><p class="brand-subtitle">Gestione reclami</p>',
                 unsafe_allow_html=True)
+    if st.button("Dashboard"): st.session_state.page = "Dashboard"; st.rerun()
+    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
     if st.button("Sincronizzazione pec"): st.toast("Disponibile nella versione completa")
     if st.button("Carica reclamo"): st.session_state.page = "Carica reclamo"; st.rerun()
     st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
@@ -228,6 +299,14 @@ with st.sidebar:
     if st.button("Reclami archiviati"): st.session_state.page = "Reclami archiviati"; st.rerun()
     st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
     if st.button("Statistiche"): st.session_state.page = "Statistiche"; st.rerun()
+    st.markdown('<div style="flex:1;"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+    if st.button("Esci", key="logout"):
+        st.session_state.logged_in = False
+        st.session_state.utente = ""
+        st.session_state.ruolo = ""
+        st.session_state.page = "Dashboard"
+        st.rerun()
     st.markdown("<br>" * 8, unsafe_allow_html=True)
     search_query = st.text_input("", placeholder="Cerca...", key="search_sidebar", label_visibility="collapsed")
 
@@ -242,7 +321,106 @@ if search_query and not df.empty:
 # ============================================================
 # 1. RECLAMI ATTIVI
 # ============================================================
-if st.session_state.page == "Reclami attivi":
+# ============================================================
+# 0. DASHBOARD
+# ============================================================
+if st.session_state.page == "Dashboard":
+    db_now = get_db()
+    df_all = pd.DataFrame(db_now)
+
+    attivi = df_all[df_all['Stato'] == 'Attivo'] if not df_all.empty else pd.DataFrame()
+    archiviati = df_all[df_all['Stato'] == 'Archiviato'] if not df_all.empty else pd.DataFrame()
+    elaborati = df_all[df_all['Stato_workflow'] == 'elaborato'] if not df_all.empty else pd.DataFrame()
+    valore_totale = int(attivi['Valore'].sum()) if not attivi.empty else 0
+    n_attivi = len(attivi)
+    n_archiviati = len(archiviati)
+    n_elaborati = len(elaborati)
+
+    st.markdown(
+        f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:28px;">' +
+        f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;' +
+        f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Dashboard</span>' +
+        f'</div>',
+        unsafe_allow_html=True)
+
+    # KPI cards
+    k1,k2,k3,k4 = st.columns(4)
+    def kpi(col, label, value, sub=""):
+        col.markdown(
+            f'<div style="background:#1e293b;border-radius:10px;padding:20px 24px;">' +
+            f'<p style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;' +
+            f'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 8px 0;">{label}</p>' +
+            f'<p style="font-family:Playfair Display,serif;font-size:32px;font-weight:700;' +
+            f'color:white;margin:0 0 4px 0;">{value}</p>' +
+            f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#475569;margin:0;">{sub}</p>' +
+            f'</div>',
+            unsafe_allow_html=True)
+
+    kpi(k1, "Pratiche attive", n_attivi, "in gestione")
+    kpi(k2, "Valore gestito", f"€ {valore_totale:,}", "pratiche attive")
+    kpi(k3, "Elaborate", n_elaborati, "analisi completata")
+    kpi(k4, "Archiviate", n_archiviati, "concluse")
+
+    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+
+    # Stato portafoglio + ultime pratiche
+    col_stato, col_recenti = st.columns([1, 2])
+
+    with col_stato:
+        sec("", "Portafoglio")
+        in_analisi = len(df_all[df_all['Esito'] == 'In analisi']) if not df_all.empty else 0
+        draft = len(df_all[df_all['Esito'] == 'Draft']) if not df_all.empty else 0
+        accolti = len(df_all[df_all['Esito'] == 'Accolto']) if not df_all.empty else 0
+        rigettati = len(df_all[df_all['Esito'] == 'Rigettato']) if not df_all.empty else 0
+        totale = max(len(df_all), 1)
+
+        def stato_bar(label, n, color):
+            pct = int(n / totale * 100)
+            st.markdown(
+                f'<div style="margin-bottom:16px;">' +
+                f'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' +
+                f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{label}</span>' +
+                f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{n}</span></div>' +
+                f'<div style="background:#e2e8f0;border-radius:4px;height:6px;">' +
+                f'<div style="background:{color};border-radius:4px;height:6px;width:{pct}%;"></div></div></div>',
+                unsafe_allow_html=True)
+
+        st.markdown("<div style='background:white;border-radius:10px;padding:20px 24px;'>", unsafe_allow_html=True)
+        stato_bar("In analisi", in_analisi, "#94a3b8")
+        stato_bar("Draft", draft, "#1e293b")
+        stato_bar("Accolti", accolti, "#10b981")
+        stato_bar("Rigettati", rigettati, "#ef4444")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col_recenti:
+        sec("", "Ultime pratiche")
+        if df_all.empty:
+            st.info("Nessuna pratica presente.")
+        else:
+            ultime = df_all.tail(5).iloc[::-1]
+            # Header
+            st.markdown(
+                '<div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 0.8fr;' +
+                'background:#1e293b;border-radius:8px 8px 0 0;padding:10px 16px;">' +
+                ''.join(f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;' +
+                         f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h}</span>'
+                         for h in ["ID Pratica","Cliente","Valore","Data","Stato"]) +
+                '</div>',
+                unsafe_allow_html=True)
+            for _, row in ultime.iterrows():
+                st.markdown(
+                    f'<div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 0.8fr;' +
+                    f'background:white;padding:12px 16px;border-bottom:1px solid #f1f5f9;align-items:center;">' +
+                    f'<span style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#1e293b;">{row["ID"]}</span>' +
+                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#1e293b;">{row["Cliente"]}</span>' +
+                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#475569;">€ {int(row["Valore"]):,}</span>' +
+                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#475569;">{row["Data"]}</span>' +
+                    f'{badge(row["Esito"])}' +
+                    f'</div>',
+                    unsafe_allow_html=True)
+            st.markdown('<div style="height:6px;background:white;border-radius:0 0 8px 8px;"></div>', unsafe_allow_html=True)
+
+elif st.session_state.page == "Reclami attivi":
     data_all = df[df['Stato'] == "Attivo"].reset_index(drop=True)
 
     st.markdown("""<style>
