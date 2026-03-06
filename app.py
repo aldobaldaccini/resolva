@@ -4,7 +4,7 @@ import plotly.express as px
 import httpx
 import json
 
-st.set_page_config(page_title="Banksolving - gestione reclami", page_icon="🏛️", layout="wide")
+st.set_page_config(page_title="Resolva - Gestione Reclami", page_icon="⚖️", layout="wide")
 
 # ── CONNESSIONE SUPABASE via REST API diretta (no libreria supabase) ──
 SUPABASE_URL = "https://szqkzsijcyhqtubywpik.supabase.co"
@@ -215,7 +215,7 @@ def build_table(data, cols, headers):
 
 # ── SIDEBAR ──
 with st.sidebar:
-    st.markdown('<p class="brand-title">Banksolving</p><p class="brand-subtitle">gestione reclami</p>',
+    st.markdown('<p class="brand-title"><span style="color:#3B82F6;letter-spacing:4px">R E</span><span style="letter-spacing:4px"> &nbsp;S O L V A</span></p><p class="brand-subtitle">Gestione reclami</p>',
                 unsafe_allow_html=True)
     if st.button("Sincronizzazione pec"): st.toast("Disponibile nella versione completa")
     if st.button("Carica reclamo"): st.session_state.page = "Carica reclamo"; st.rerun()
