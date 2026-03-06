@@ -418,9 +418,11 @@ elif st.session_state.page == "Dettaglio pratica":
 
             if wf == "elaborato":
                 sec("⚖️", "Decisione finale", "red")
-                esiti = ["In analisi","Accolto","Rigettato"]
+                esiti = ["In analisi","Draft","Accolto","Rigettato"]
+                esito_corrente = rec.get("Esito","In analisi")
+                esito_idx = esiti.index(esito_corrente) if esito_corrente in esiti else 0
                 esito_sel = st.radio("Esito", esiti,
-                    index=esiti.index(rec.get("Esito","In analisi")), key=f"esito_{rec['ID']}")
+                    index=esito_idx, key=f"esito_{rec['ID']}")
                 if st.button("📨 Invia al decisore finale", key=f"send_{rec['ID']}", type="primary"):
                     nuovo_stato = "Archiviato" if esito_sel in ["Accolto","Rigettato"] else "Attivo"
                     sb_update(rec["ID"], {"esito": esito_sel, "stato": nuovo_stato})
