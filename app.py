@@ -181,6 +181,16 @@ div[data-testid="stSidebar"] .stTextInput input {
 </style>
 """, unsafe_allow_html=True)
 
+# ── STATO (deve essere prima dell'autorefresh) ──
+if 'page' not in st.session_state:
+    st.session_state.page = "Dashboard"
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+if 'utente' not in st.session_state:
+    st.session_state.utente = ""
+if 'ruolo' not in st.session_state:
+    st.session_state.ruolo = ""
+
 # ── AUTO REFRESH ogni 20 secondi ──
 st_autorefresh(interval=20000, key="autorefresh")
 
@@ -226,16 +236,6 @@ if not st.session_state.logged_in:
         Demo: <b style="color:#64748b">operatore</b> o <b style="color:#64748b">responsabile</b> · password: resolva2026
         </p>""", unsafe_allow_html=True)
     st.stop()
-
-# ── STATO ──
-if 'page' not in st.session_state:
-    st.session_state.page = "Dashboard"
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-if 'utente' not in st.session_state:
-    st.session_state.utente = ""
-if 'ruolo' not in st.session_state:
-    st.session_state.ruolo = ""
 
 UTENTI = {
     "operatore": {"password": "resolva2026", "ruolo": "Operatore", "nome": "M. Rossi"},
