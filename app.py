@@ -245,8 +245,14 @@ if search_query and not df.empty:
 if st.session_state.page == "Reclami attivi":
     data_all = df[df['Stato'] == "Attivo"].reset_index(drop=True)
 
-    # Titolo + cerca top right
-    col_title, _, col_cerca = st.columns([3, 1, 2])
+    st.markdown("""<style>
+    div[data-baseweb="select"] > div { transition: border-color .15s, box-shadow .15s; }
+    div[data-baseweb="select"] > div:hover { border-color:#3B82F6 !important; box-shadow:0 0 0 2px rgba(59,130,246,.25) !important; }
+    div[data-baseweb="select"] > div:focus-within { border-color:#3B82F6 !important; box-shadow:0 0 0 2px rgba(59,130,246,.25) !important; }
+    </style>""", unsafe_allow_html=True)
+
+    # Titolo + cerca sulla stessa riga, allineati
+    col_title, col_cerca = st.columns([3, 2])
     with col_title:
         st.markdown(
             f'<div class="header-container">'
@@ -254,12 +260,7 @@ if st.session_state.page == "Reclami attivi":
             f'<div class="counter-badge">{len(data_all)}</div></div>',
             unsafe_allow_html=True)
     with col_cerca:
-        st.markdown('<div style="margin-top:8px;"></div>', unsafe_allow_html=True)
-        cerca = st.text_input("", placeholder="🔍 Cerca cliente...", label_visibility="collapsed", key="cerca_attivi")
-        if cerca:
-            if st.button("✕ Cancella ricerca", key="reset_cerca"):
-                st.session_state["cerca_attivi"] = ""
-                st.rerun()
+        cerca = st.text_input("", placeholder="🔍  Cerca per nome cliente...", label_visibility="collapsed")
 
     data_view = data_all.copy()
     if cerca:
@@ -278,15 +279,13 @@ if st.session_state.page == "Reclami attivi":
             scelta = st.selectbox("Seleziona pratica", labels, label_visibility="collapsed")
         with col_btn:
             st.markdown("""<style>
-            div[data-testid="column"] button[kind="secondary"] {
+            div[data-testid="stMainBlockContainer"] button[kind="secondary"] {
                 background:#3B82F6 !important; color:white !important;
                 border:none !important; font-weight:600 !important;
             }
-            div[data-testid="column"] button[kind="secondary"]:hover {
+            div[data-testid="stMainBlockContainer"] button[kind="secondary"]:hover {
                 background:#2563eb !important;
             }
-            div[data-baseweb="select"] > div { transition: border-color .15s, box-shadow .15s; }
-            div[data-baseweb="select"] > div:hover { border-color:#3B82F6 !important; box-shadow:0 0 0 2px rgba(59,130,246,.25) !important; }
             </style>""", unsafe_allow_html=True)
             if st.button("Apri pratica →", use_container_width=True):
                 st.session_state.id_selezionato = ids[labels.index(scelta)]
