@@ -324,103 +324,124 @@ if search_query and not df.empty:
 # 1. RECLAMI ATTIVI
 # ============================================================
 # ============================================================
-# 0. DASHBOARD
+# 0. DASHBOARD — WAR ROOM
 # ============================================================
 if st.session_state.page == "Dashboard":
     db_now = get_db()
     df_all = pd.DataFrame(db_now)
 
-    attivi = df_all[df_all['Stato'] == 'Attivo'] if not df_all.empty else pd.DataFrame()
-    archiviati = df_all[df_all['Stato'] == 'Archiviato'] if not df_all.empty else pd.DataFrame()
+    attivi    = df_all[df_all['Stato'] == 'Attivo']    if not df_all.empty else pd.DataFrame()
+    archiviati= df_all[df_all['Stato'] == 'Archiviato'] if not df_all.empty else pd.DataFrame()
     elaborati = df_all[df_all['Stato_workflow'] == 'elaborato'] if not df_all.empty else pd.DataFrame()
+    rigettati_df = df_all[df_all['Esito'] == 'Rigettato'] if not df_all.empty else pd.DataFrame()
     valore_totale = int(attivi['Valore'].sum()) if not attivi.empty else 0
-    n_attivi = len(attivi)
-    n_archiviati = len(archiviati)
+    n_attivi   = len(attivi)
+    n_archiviate = len(archiviati)
     n_elaborati = len(elaborati)
+    n_rigettati = len(rigettati_df)
 
+    # ── Background scuro per tutta la dashboard ──
+    st.markdown("""<style>
+    .dashboard-bg { background:#0f172a; min-height:100vh; margin:-2rem; padding:2rem; }
+    </style>""", unsafe_allow_html=True)
+
+    # ── Titolo ──
     st.markdown(
-        f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:28px;">' +
-        f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;' +
-        f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Dashboard</span>' +
-        f'</div>',
+        '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+        'text-transform:uppercase;letter-spacing:.18em;color:#94a3b8;margin-bottom:24px;">'
+        'Dashboard</p>',
         unsafe_allow_html=True)
 
-    # KPI cards
+    # ── 4 KPI ──
     k1,k2,k3,k4 = st.columns(4)
-    def kpi(col, label, value, sub=""):
+
+    def kpi_war(col, label, value, sub, accent="#3B82F6"):
         col.markdown(
-            f'<div style="background:#1e293b;border-radius:10px;padding:20px 24px;">' +
-            f'<p style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;' +
-            f'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 8px 0;">{label}</p>' +
-            f'<p style="font-family:Playfair Display,serif;font-size:32px;font-weight:700;' +
-            f'color:white;margin:0 0 4px 0;">{value}</p>' +
-            f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#475569;margin:0;">{sub}</p>' +
+            f'<div style="background:#1e293b;border-radius:12px;padding:24px 28px;'
+            f'border-left:3px solid {accent};">'
+            f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+            f'color:#475569;text-transform:uppercase;letter-spacing:.12em;margin:0 0 12px 0;">{label}</p>'
+            f'<p style="font-family:Playfair Display,serif;font-size:38px;font-weight:700;'
+            f'color:white;margin:0 0 6px 0;line-height:1;">{value}</p>'
+            f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#475569;margin:0;">{sub}</p>'
             f'</div>',
             unsafe_allow_html=True)
 
-    kpi(k1, "Pratiche attive", n_attivi, "in gestione")
-    kpi(k2, "Valore gestito", f"€ {valore_totale:,}", "pratiche attive")
-    kpi(k3, "Elaborate", n_elaborati, "analisi completata")
-    kpi(k4, "Archiviate", n_archiviati, "concluse")
+    kpi_war(k1, "Pratiche attive",    n_attivi,         "in gestione",           "#3B82F6")
+    kpi_war(k2, "Valore gestito",     f"€ {valore_totale:,}", "portafoglio attivo", "#3B82F6")
+    kpi_war(k3, "Elaborate",          n_elaborati,      "analisi AI completata",  "#10b981")
+    kpi_war(k4, "Rigettate",          n_rigettati,      "da monitorare",          "#ef4444")
 
-    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
 
-    # Stato portafoglio + ultime pratiche
-    col_stato, col_recenti = st.columns([1, 2])
+    # ── Seconda riga: stati + ultime pratiche ──
+    col_stati, col_recenti = st.columns([1, 2])
 
-    with col_stato:
-        sec("", "Portafoglio")
+    with col_stati:
+        st.markdown(
+            '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+            'color:#475569;text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px;">'
+            'Stato portafoglio</p>',
+            unsafe_allow_html=True)
+
         in_analisi = len(df_all[df_all['Esito'] == 'In analisi']) if not df_all.empty else 0
-        draft = len(df_all[df_all['Esito'] == 'Draft']) if not df_all.empty else 0
-        accolti = len(df_all[df_all['Esito'] == 'Accolto']) if not df_all.empty else 0
-        rigettati = len(df_all[df_all['Esito'] == 'Rigettato']) if not df_all.empty else 0
+        draft      = len(df_all[df_all['Esito'] == 'Draft'])      if not df_all.empty else 0
+        accolti    = len(df_all[df_all['Esito'] == 'Accolto'])    if not df_all.empty else 0
         totale = max(len(df_all), 1)
 
-        def stato_bar(label, n, color):
+        def war_bar(label, n, color):
             pct = int(n / totale * 100)
             st.markdown(
-                f'<div style="margin-bottom:16px;">' +
-                f'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' +
-                f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{label}</span>' +
-                f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{n}</span></div>' +
-                f'<div style="background:#e2e8f0;border-radius:4px;height:6px;">' +
-                f'<div style="background:{color};border-radius:4px;height:6px;width:{pct}%;"></div></div></div>',
+                f'<div style="margin-bottom:20px;">'
+                f'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+                f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;">{label}</span>'
+                f'<span style="font-family:Playfair Display,serif;font-size:16px;font-weight:700;color:white;">{n}</span></div>'
+                f'<div style="background:#0f172a;border-radius:3px;height:4px;">'
+                f'<div style="background:{color};border-radius:3px;height:4px;width:{pct}%;transition:width .5s;"></div>'
+                f'</div></div>',
                 unsafe_allow_html=True)
 
-        st.markdown("<div style='background:white;border-radius:10px;padding:20px 24px;'>", unsafe_allow_html=True)
-        stato_bar("In analisi", in_analisi, "#94a3b8")
-        stato_bar("Draft", draft, "#1e293b")
-        stato_bar("Accolti", accolti, "#10b981")
-        stato_bar("Rigettati", rigettati, "#ef4444")
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown('<div style="background:#1e293b;border-radius:12px;padding:24px 28px;">', unsafe_allow_html=True)
+        war_bar("In analisi", in_analisi, "#64748b")
+        war_bar("Draft",      draft,      "#3B82F6")
+        war_bar("Accolti",    accolti,    "#10b981")
+        war_bar("Rigettati",  n_rigettati,"#ef4444")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col_recenti:
-        sec("", "Ultime pratiche")
+        st.markdown(
+            '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+            'color:#475569;text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px;">'
+            'Ultime pratiche caricate</p>',
+            unsafe_allow_html=True)
+
         if df_all.empty:
             st.info("Nessuna pratica presente.")
         else:
             ultime = df_all.tail(5).iloc[::-1]
             # Header
             st.markdown(
-                '<div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 0.8fr;' +
-                'background:#1e293b;border-radius:8px 8px 0 0;padding:10px 16px;">' +
-                ''.join(f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;' +
-                         f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h}</span>'
-                         for h in ["ID Pratica","Cliente","Valore","Data","Stato"]) +
+                '<div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;'
+                'padding:10px 16px;margin-bottom:2px;">' +
+                ''.join(f'<span style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                        f'color:#475569;letter-spacing:.1em;text-transform:uppercase;">{h}</span>'
+                        for h in ["ID Pratica","Cliente","Valore","Data","Stato"]) +
                 '</div>',
                 unsafe_allow_html=True)
-            for _, row in ultime.iterrows():
+            for i, (_, row) in enumerate(ultime.iterrows()):
+                radius = "8px 8px 0 0" if i == 0 else ("0 0 8px 8px" if i == len(ultime)-1 else "0")
                 st.markdown(
-                    f'<div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 0.8fr;' +
-                    f'background:white;padding:12px 16px;border-bottom:1px solid #f1f5f9;align-items:center;">' +
-                    f'<span style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#1e293b;">{row["ID"]}</span>' +
-                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#1e293b;">{row["Cliente"]}</span>' +
-                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#475569;">€ {int(row["Valore"]):,}</span>' +
-                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#475569;">{row["Data"]}</span>' +
-                    f'{badge(row["Esito"])}' +
+                    f'<div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;'
+                    f'background:#1e293b;padding:14px 16px;'
+                    f'border-bottom:1px solid #0f172a;align-items:center;border-radius:{radius};">'
+                    f'<span style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#e2e8f0;">{row["ID"]}</span>'
+                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;">{row["Cliente"]}</span>'
+                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;">€ {int(row["Valore"]):,}</span>'
+                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;">{row["Data"]}</span>'
+                    f'{badge(row["Esito"])}'
                     f'</div>',
                     unsafe_allow_html=True)
-            st.markdown('<div style="height:6px;background:white;border-radius:0 0 8px 8px;"></div>', unsafe_allow_html=True)
+
 
 elif st.session_state.page == "Reclami attivi":
     data_all = df[df['Stato'] == "Attivo"].reset_index(drop=True)
