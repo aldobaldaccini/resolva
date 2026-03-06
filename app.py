@@ -376,62 +376,61 @@ if st.session_state.page == "Dashboard":
 
         def kpi_exec(col, label, value, sub, color="#1e293b"):
             col.markdown(
-                f'<div style="background:white;border-radius:10px;padding:20px 24px;'
-                f'box-shadow:0 2px 12px rgba(0,0,0,.06);border-top:3px solid {color};">'
+                f'<div style="background:#e2e8f0;border-radius:10px;padding:20px 24px;'
+                f'border-left:3px solid {color};">'
                 f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-                f'color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px 0;">{label}</p>'
+                f'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px 0;">{label}</p>'
                 f'<p style="font-family:Playfair Display,serif;font-size:32px;font-weight:700;'
-                f'color:{color};margin:0 0 4px 0;line-height:1;">{value}</p>'
+                f'color:#1e293b;margin:0 0 4px 0;line-height:1;">{value}</p>'
                 f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#94a3b8;margin:0;">{sub}</p>'
                 f'</div>',
                 unsafe_allow_html=True)
 
-        kpi_exec(k1, "Reclami attivi",     n_attivi,              "in gestione",         "#1e293b")
-        kpi_exec(k2, "Reclami archiviati", n_archiviate,          "conclusi",            "#1e293b")
-        kpi_exec(k3, "Tasso accoglimento", f"{tasso_accolto}%",   "pratiche concluse",   "#10b981")
-        kpi_exec(k4, "Tasso rigetto",      f"{tasso_rigetto}%",   "pratiche concluse",   "#ef4444")
+        kpi_exec(k1, "Reclami attivi",     n_attivi,           "in gestione",            "#1e293b")
+        kpi_exec(k2, "Reclami archiviati", n_archiviate,       "conclusi",               "#1e293b")
+        kpi_exec(k3, "Da assegnare",       len(da_assegnare),  "in attesa di operatore", "#f59e0b")
+        kpi_exec(k4, "Da approvare",       len(da_approvare),  "elaborate, in revisione","#3B82F6")
 
         st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
         k5,k6,k7,k8 = st.columns(4)
-        kpi_exec(k5, "Valore portafoglio",   f"€ {valore_tot:,}",   "reclami attivi",           "#3B82F6")
-        kpi_exec(k6, "Valore medio reclamo", f"€ {valore_medio:,}", "media storica",             "#3B82F6")
-        kpi_exec(k7, "Da assegnare",         len(da_assegnare),      "in attesa",                "#f59e0b")
-        kpi_exec(k8, "Da approvare",         len(da_approvare),      "elaborate, in revisione",  "#3B82F6")
+        kpi_exec(k5, "Valore portafoglio",   f"€ {valore_tot:,}",   "reclami attivi",    "#3B82F6")
+        kpi_exec(k6, "Valore medio reclamo", f"€ {valore_medio:,}", "media storica",      "#3B82F6")
+        kpi_exec(k7, "Tasso accoglimento",   f"{tasso_accolto}%",   "pratiche concluse",  "#10b981")
+        kpi_exec(k8, "Tasso rigetto",        f"{tasso_rigetto}%",   "pratiche concluse",  "#ef4444")
 
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
 
         # ── SEZIONE 2: PRATICHE DA ASSEGNARE ──
-        col_title_a, col_pec = st.columns([4,1])
-        with col_title_a:
-            st.markdown(
-                f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
-                f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-                f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pratiche da assegnare</span>'
-                f'<span style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:12px;'
-                f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
-                f'align-items:center;justify-content:center;">{len(da_assegnare)}</span></div>',
-                unsafe_allow_html=True)
-        with col_pec:
-            if st.button("📡 Sincronizza PEC", use_container_width=True):
-                st.toast("Sincronizzazione PEC disponibile nella versione completa")
-
-        # Carico operatori
-        if not attivi_df.empty:
-            carico = attivi_df[attivi_df['Operatore'].notna()].groupby('Operatore').size().to_dict()
-            carico_str = "  ·  ".join([f"{op}: {n}" for op, n in sorted(carico.items()) if op not in ['Da assegnare', '']])
-            if carico_str:
-                st.markdown(
-                    f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#94a3b8;margin-bottom:12px;">'
-                    f'<span style="font-weight:700;color:#475569;">Carico operatori:</span> {carico_str}</p>',
-                    unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pratiche da assegnare</span>'
+            f'<span style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:12px;'
+            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'align-items:center;justify-content:center;">{len(da_assegnare)}</span></div>',
+            unsafe_allow_html=True)
 
         if da_assegnare.empty:
             st.info("Nessuna pratica da assegnare.")
         else:
-            # Header tabella
-            col_h = st.columns([2,1,2,1,1.5,1])
-            for h_col, h_txt in zip(col_h, ["ID Pratica","Data","Cliente","Valore","Operatore","Stato"]):
+            # Selettore operatore + pulsante sopra la tabella
+            col_op_sel, col_op_btn = st.columns([2,1])
+            with col_op_sel:
+                op_scelto = st.selectbox("Assegna a:", OPERATORI, label_visibility="visible")
+            with col_op_btn:
+                pratica_scelta = st.selectbox("Pratica:", 
+                    da_assegnare["ID"].tolist(), label_visibility="visible")
+            if st.button("✓ Assegna pratica", type="primary"):
+                sb_update(pratica_scelta, {"operatore": op_scelto, "assegnato_a": op_scelto})
+                get_db.clear()
+                st.rerun()
+
+            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+            # Tabella pulita
+            col_h = st.columns([2,1,2,1,1.5])
+            for h_col, h_txt in zip(col_h, ["ID Pratica","Data","Cliente","Valore","Stato"]):
                 h_col.markdown(
                     f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
                     f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h_txt}</span>',
@@ -439,19 +438,17 @@ if st.session_state.page == "Dashboard":
             st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
 
             for _, row in da_assegnare.iterrows():
-                c1,c2,c3,c4,c5,c6 = st.columns([2,1,2,1,1.5,1])
-                c1.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span></div>', unsafe_allow_html=True)
-                c2.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span></div>', unsafe_allow_html=True)
-                c3.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span></div>', unsafe_allow_html=True)
-                c4.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span></div>', unsafe_allow_html=True)
-                with c5:
-                    nuovo_op = st.selectbox("Operatore", OPERATORI, key=f"assegna_{row['ID']}", label_visibility="collapsed")
-                with c6:
-                    if st.button("Assegna", key=f"btn_assegna_{row['ID']}", use_container_width=True):
-                        sb_update(row["ID"], {"operatore": nuovo_op, "assegnato_a": nuovo_op})
-                        get_db.clear()
-                        st.rerun()
-                st.markdown('<hr style="margin:2px 0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
+                c1,c2,c3,c4,c5 = st.columns([2,1,2,1,1.5])
+                c1.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span></div>', unsafe_allow_html=True)
+                c2.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span></div>', unsafe_allow_html=True)
+                c3.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span></div>', unsafe_allow_html=True)
+                c4.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span></div>', unsafe_allow_html=True)
+                c5.markdown(f'<div style="background:white;padding:8px 0;">{badge(row["Esito"])}</div>', unsafe_allow_html=True)
+                st.markdown('<hr style="margin:0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
+            
+            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+            if st.button("📡 Sincronizza PEC"):
+                st.toast("Sincronizzazione PEC disponibile nella versione completa")
 
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
 
@@ -477,17 +474,17 @@ if st.session_state.page == "Dashboard":
             st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
 
             for _, row in da_approvare.iterrows():
-                c1,c2,c3,c4,c5,c6 = st.columns([2,1,2,1,1,1])
-                c1.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span></div>', unsafe_allow_html=True)
-                c2.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span></div>', unsafe_allow_html=True)
-                c3.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span></div>', unsafe_allow_html=True)
-                c4.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span></div>', unsafe_allow_html=True)
-                c5.markdown(f'<div style="background:white;padding:10px 0;">{badge(row["Esito"])}</div>', unsafe_allow_html=True)
-                if c6.button("Apri →", key=f"appr_{row['ID']}"):
+                c1,c2,c3,c4,c5,c6 = st.columns([2,1,2,1,1,0.8])
+                c1.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span></div>', unsafe_allow_html=True)
+                c2.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span></div>', unsafe_allow_html=True)
+                c3.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span></div>', unsafe_allow_html=True)
+                c4.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span></div>', unsafe_allow_html=True)
+                c5.markdown(f'<div style="background:white;padding:8px 0;">{badge(row["Esito"])}</div>', unsafe_allow_html=True)
+                if c6.button("→", key=f"appr_{row['ID']}"):
                     st.session_state.id_selezionato = row["ID"]
                     st.session_state.page = "Dettaglio pratica"
                     st.rerun()
-                st.markdown('<hr style="margin:2px 0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
+                st.markdown('<hr style="margin:0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
 
     # ══════════════════════════════════════════════
     # DASHBOARD OPERATORE
