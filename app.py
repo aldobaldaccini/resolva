@@ -366,44 +366,35 @@ if st.session_state.page == "Dashboard":
             'Dashboard · Responsabile</p>',
             unsafe_allow_html=True)
 
-        # ── SEZIONE 1: KPI STATISTICHE ──
+        # ── CSS pulsanti rossi ──
+        st.markdown("""<style>
+        .btn-red button { background:#dc2626 !important; color:white !important;
+            border:none !important; font-weight:600 !important; }
+        .btn-red button:hover { background:#b91c1c !important; }
+        </style>""", unsafe_allow_html=True)
+
+        # ══ TASK 1: SINCRONIZZA PEC ══
         st.markdown(
-            '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-            'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;">'
-            'Statistiche portafoglio</p>', unsafe_allow_html=True)
-
-        k1,k2,k3,k4 = st.columns(4)
-
-        def kpi_exec(col, label, value, sub, color="#1e293b"):
-            col.markdown(
-                f'<div style="background:#e2e8f0;border-radius:10px;padding:20px 24px;'
-                f'border-left:3px solid {color};">'
-                f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-                f'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px 0;">{label}</p>'
-                f'<p style="font-family:Playfair Display,serif;font-size:32px;font-weight:700;'
-                f'color:#1e293b;margin:0 0 4px 0;line-height:1;">{value}</p>'
-                f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#94a3b8;margin:0;">{sub}</p>'
-                f'</div>',
-                unsafe_allow_html=True)
-
-        kpi_exec(k1, "Reclami attivi",     n_attivi,           "in gestione",            "#1e293b")
-        kpi_exec(k2, "Reclami archiviati", n_archiviate,       "conclusi",               "#1e293b")
-        kpi_exec(k3, "Da assegnare",       len(da_assegnare),  "in attesa di operatore", "#f59e0b")
-        kpi_exec(k4, "Da approvare",       len(da_approvare),  "elaborate, in revisione","#3B82F6")
-
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-
-        k5,k6,k7,k8 = st.columns(4)
-        kpi_exec(k5, "Valore portafoglio",   f"€ {valore_tot:,}",   "reclami attivi",    "#3B82F6")
-        kpi_exec(k6, "Valore medio reclamo", f"€ {valore_medio:,}", "media storica",      "#3B82F6")
-        kpi_exec(k7, "Tasso accoglimento",   f"{tasso_accolto}%",   "pratiche concluse",  "#10b981")
-        kpi_exec(k8, "Tasso rigetto",        f"{tasso_rigetto}%",   "pratiche concluse",  "#ef4444")
+            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:12px;">'
+            'Sincronizzazione PEC</p>', unsafe_allow_html=True)
+        st.markdown(
+            '<div style="background:#e2e8f0;border-radius:10px;padding:20px 24px;margin-bottom:28px;">'
+            '<p style="font-family:Inter,sans-serif;font-size:13px;color:#475569;margin:0 0 16px 0;">'
+            'Importa i nuovi reclami ricevuti via PEC nella piattaforma.</p>'
+            '</div>', unsafe_allow_html=True)
+        _, pec_btn = st.columns([4,1])
+        with pec_btn:
+            st.markdown('<div class="btn-red">', unsafe_allow_html=True)
+            if st.button("📡 Sincronizza", use_container_width=True):
+                st.toast("Sincronizzazione PEC disponibile nella versione completa")
+            st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
 
-        # ── SEZIONE 2: PRATICHE DA ASSEGNARE ──
+        # ══ TASK 2: PRATICHE DA ASSEGNARE ══
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
             f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pratiche da assegnare</span>'
             f'<span style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:12px;'
@@ -414,47 +405,31 @@ if st.session_state.page == "Dashboard":
         if da_assegnare.empty:
             st.info("Nessuna pratica da assegnare.")
         else:
-            # Selettore operatore + pulsante sopra la tabella
-            col_op_sel, col_op_btn = st.columns([2,1])
-            with col_op_sel:
-                op_scelto = st.selectbox("Assegna a:", OPERATORI, label_visibility="visible")
-            with col_op_btn:
-                pratica_scelta = st.selectbox("Pratica:", 
-                    da_assegnare["ID"].tolist(), label_visibility="visible")
-            if st.button("✓ Assegna pratica", type="primary"):
-                sb_update(pratica_scelta, {"operatore": op_scelto, "assegnato_a": op_scelto})
-                get_db.clear()
-                st.rerun()
+            col_pratica, col_operatore = st.columns([3, 2])
+            with col_pratica:
+                labels_ass = [
+                    f"{r['ID']}  ·  {r['Cliente']}  ·  € {int(r['Valore']):,}"
+                    for _, r in da_assegnare.iterrows()
+                ]
+                pratica_label = st.selectbox("Pratica da assegnare", labels_ass, label_visibility="visible")
+                pratica_id = da_assegnare.iloc[labels_ass.index(pratica_label)]["ID"]
+            with col_operatore:
+                op_scelto = st.selectbox("Assegna a", OPERATORI, label_visibility="visible")
 
-            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-
-            # Tabella pulita
-            col_h = st.columns([2,1,2,1,1.5])
-            for h_col, h_txt in zip(col_h, ["ID Pratica","Data","Cliente","Valore","Stato"]):
-                h_col.markdown(
-                    f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
-                    f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h_txt}</span>',
-                    unsafe_allow_html=True)
-            st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
-
-            for _, row in da_assegnare.iterrows():
-                c1,c2,c3,c4,c5 = st.columns([2,1,2,1,1.5])
-                c1.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span></div>', unsafe_allow_html=True)
-                c2.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span></div>', unsafe_allow_html=True)
-                c3.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span></div>', unsafe_allow_html=True)
-                c4.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span></div>', unsafe_allow_html=True)
-                c5.markdown(f'<div style="background:white;padding:8px 0;">{badge(row["Esito"])}</div>', unsafe_allow_html=True)
-                st.markdown('<hr style="margin:0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
-            
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-            if st.button("📡 Sincronizza PEC"):
-                st.toast("Sincronizzazione PEC disponibile nella versione completa")
+            _, btn_ass = st.columns([4, 1])
+            with btn_ass:
+                st.markdown('<div class="btn-red">', unsafe_allow_html=True)
+                if st.button("Assegna →", use_container_width=True, key="assegna_main"):
+                    sb_update(pratica_id, {"operatore": op_scelto, "assegnato_a": op_scelto})
+                    get_db.clear()
+                    st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
 
-        # ── SEZIONE 3: PRATICHE IN ATTESA DI APPROVAZIONE ──
+        # ══ TASK 3: IN ATTESA DI APPROVAZIONE ══
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
             f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">In attesa di approvazione</span>'
             f'<span style="background:#3B82F6;color:white;font-family:Inter,sans-serif;font-size:12px;'
@@ -465,26 +440,56 @@ if st.session_state.page == "Dashboard":
         if da_approvare.empty:
             st.info("Nessuna pratica in attesa di approvazione.")
         else:
-            col_h2 = st.columns([2,1,2,1,1,1])
-            for h_col, h_txt in zip(col_h2, ["ID Pratica","Data","Cliente","Valore","Esito AI","Azione"]):
-                h_col.markdown(
-                    f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
-                    f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h_txt}</span>',
-                    unsafe_allow_html=True)
-            st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
+            labels_appr = [
+                f"{r['ID']}  ·  {r['Cliente']}  ·  € {int(r['Valore']):,}"
+                for _, r in da_approvare.iterrows()
+            ]
+            appr_label = st.selectbox("Seleziona pratica da revisionare", labels_appr, label_visibility="visible")
+            appr_id = da_approvare.iloc[labels_appr.index(appr_label)]["ID"]
 
-            for _, row in da_approvare.iterrows():
-                c1,c2,c3,c4,c5,c6 = st.columns([2,1,2,1,1,0.8])
-                c1.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span></div>', unsafe_allow_html=True)
-                c2.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span></div>', unsafe_allow_html=True)
-                c3.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span></div>', unsafe_allow_html=True)
-                c4.markdown(f'<div style="background:white;padding:12px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span></div>', unsafe_allow_html=True)
-                c5.markdown(f'<div style="background:white;padding:8px 0;">{badge(row["Esito"])}</div>', unsafe_allow_html=True)
-                if c6.button("→", key=f"appr_{row['ID']}"):
-                    st.session_state.id_selezionato = row["ID"]
+            _, btn_appr = st.columns([4, 1])
+            with btn_appr:
+                st.markdown('<div class="btn-red">', unsafe_allow_html=True)
+                if st.button("Apri →", use_container_width=True, key="apri_appr"):
+                    st.session_state.id_selezionato = appr_id
                     st.session_state.page = "Dettaglio pratica"
                     st.rerun()
-                st.markdown('<hr style="margin:0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
+
+        # ══ STATISTICHE (in fondo) ══
+        st.markdown(
+            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:16px;">'
+            'Statistiche portafoglio</p>', unsafe_allow_html=True)
+
+        def kpi_exec(col, label, value, sub):
+            col.markdown(
+                f'<div style="background:#e2e8f0;border-radius:10px;padding:20px 24px;">'
+                f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                f'color:#64748b;text-transform:uppercase;letter-spacing:.12em;margin:0 0 10px 0;">{label}</p>'
+                f'<p style="font-family:Playfair Display,serif;font-size:32px;font-weight:700;'
+                f'color:#1e293b;margin:0 0 4px 0;line-height:1;">{value}</p>'
+                f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#94a3b8;margin:0;">{sub}</p>'
+                f'</div>',
+                unsafe_allow_html=True)
+
+        k1,k2,k3,k4 = st.columns(4)
+        kpi_exec(k1, "Reclami attivi",     n_attivi,              "in gestione")
+        kpi_exec(k2, "Reclami archiviati", n_archiviate,          "conclusi")
+        kpi_exec(k3, "Da assegnare",       len(da_assegnare),     "in attesa di operatore")
+        kpi_exec(k4, "Da approvare",       len(da_approvare),     "elaborate, in revisione")
+
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+        k5,k6,k7,k8 = st.columns(4)
+        kpi_exec(k5, "Valore portafoglio",   f"€ {valore_tot:,}",   "reclami attivi")
+        kpi_exec(k6, "Valore medio reclamo", f"€ {valore_medio:,}", "media storica")
+        kpi_exec(k7, "Tasso accoglimento",   f"{tasso_accolto}%",   "pratiche concluse")
+        kpi_exec(k8, "Tasso rigetto",        f"{tasso_rigetto}%",   "pratiche concluse")
+
+        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════════
     # DASHBOARD OPERATORE
