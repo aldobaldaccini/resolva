@@ -351,24 +351,66 @@ elif st.session_state.page == "Statistiche":
 elif st.session_state.page == "Carica reclamo":
     st.markdown('<div class="header-container"><span class="main-title">Carica reclamo</span></div>',
                 unsafe_allow_html=True)
-    st.info("Incolla il testo del reclamo. Il sistema AI estrarrà automaticamente i dati e genererà nota tecnica e bozza di risposta.")
-    with st.form("manual"):
-        testo = st.text_area("Testo del reclamo *", height=280,
-                             placeholder="Incolla qui il testo completo del reclamo...")
-        submitted = st.form_submit_button("🚀 Invia al flusso AI")
-    if submitted and testo:
-        try:
-            risposta = httpx.post(
-                "https://aldobaldaccini.app.n8n.cloud/webhook/avvia-reclamo",
-                json={"testo_reclamo": testo},
-                timeout=10
-            )
-            get_db.clear()
-            st.success("✅ Reclamo inviato. La pratica apparirà tra i reclami attivi a breve.")
-            st.session_state.page = "Reclami attivi"
-            st.rerun()
-        except Exception as e:
-            st.error(f"Errore nell'invio: {e}")
+
+    col_testo, col_pdf = st.columns(2)
+
+    with col_testo:
+        st.markdown("""
+        <div style="background:#1e293b;border-radius:10px;padding:16px 20px;margin-bottom:8px;">
+            <span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;
+            color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;">Testo del reclamo</span>
+        </div>""", unsafe_allow_html=True)
+        testo = st.text_area("", height=260,
+            placeholder="Incolla qui il testo completo del reclamo...",
+            label_visibility="collapsed")
+
+    with col_pdf:
+        st.markdown("""
+        <div style="background:#1e293b;border-radius:10px;padding:16px 20px;margin-bottom:8px;">
+            <span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;
+            color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;">Carica PDF reclamo</span>
+        </div>""", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="background:white;border-radius:10px;height:260px;display:flex;flex-direction:column;
+            align-items:center;justify-content:center;border:2px dashed #cbd5e1;gap:12px;">
+            <span style="font-size:32px;">📎</span>
+            <span style="font-family:Inter,sans-serif;font-size:13px;color:#94a3b8;text-align:center;">
+            Trascina il PDF qui<br>
+            <span style="font-size:11px;color:#cbd5e1;">Disponibile nella versione completa</span>
+            </span>
+        </div>""", unsafe_allow_html=True)
+
+    # Pulsante a destra sotto i due box
+    _, col_btn = st.columns([3, 1])
+    with col_btn:
+        st.markdown("""<style>
+        div[data-testid="stMainBlockContainer"] button[kind="secondaryFormSubmit"],
+        div[data-testid="stMainBlockContainer"] button[kind="secondary"] {
+            background:#3B82F6 !important; color:white !important;
+            border:none !important; font-weight:600 !important;
+            font-family:Inter,sans-serif !important; font-size:13px !important;
+        }
+        div[data-testid="stMainBlockContainer"] button[kind="secondaryFormSubmit"]:hover,
+        div[data-testid="stMainBlockContainer"] button[kind="secondary"]:hover {
+            background:#2563eb !important;
+        }
+        </style>""", unsafe_allow_html=True)
+        if st.button("Avvia l'analisi Resolva →", use_container_width=True, key="avvia"):
+            if testo:
+                try:
+                    httpx.post(
+                        "https://aldobaldaccini.app.n8n.cloud/webhook/avvia-reclamo",
+                        json={"testo_reclamo": testo},
+                        timeout=10
+                    )
+                    get_db.clear()
+                    st.success("✅ Reclamo inviato. La pratica apparirà tra i reclami attivi a breve.")
+                    st.session_state.page = "Reclami attivi"
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Errore nell'invio: {e}")
+            else:
+                st.warning("Incolla il testo del reclamo prima di procedere.")
 
 # ============================================================
 # 5. DETTAGLIO PRATICA
