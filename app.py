@@ -148,24 +148,29 @@ div[data-testid="stSidebar"] .stTextInput input {
 .status-attivo { background:#dbeafe; color:#1d4ed8; }
 .status-archiviato { background:#e2e8f0; color:#475569; }
 
-.sec-header { display:flex; align-items:center; gap:10px; background:white;
-    border-left:4px solid #3B82F6; border-radius:0 8px 0 0; padding:12px 18px;
-    margin-top:20px; margin-bottom:0; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-.sec-header.green  { border-color:#10b981; }
-.sec-header.slate  { border-color:#64748b; }
-.sec-header.amber  { border-color:#f59e0b; }
-.sec-header.red    { border-color:#ef4444; }
-.sec-icon { font-size:18px; line-height:1; }
-.sec-title { font-family:'Inter',sans-serif; font-size:13px; font-weight:700;
-    text-transform:uppercase; letter-spacing:.10em; color:#1e293b; }
-.sec-body { background:white; border-radius:0 0 8px 8px; padding:18px 20px 20px 20px;
-    margin-bottom:6px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.sec-header { display:flex; align-items:center; gap:10px; background:transparent;
+    border:none; padding:0; margin-top:28px; margin-bottom:10px; }
+.sec-header.green {}
+.sec-header.slate {}
+.sec-header.amber {}
+.sec-header.red {}
+.sec-icon { display:none; }
+.sec-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.18em; color:#1e293b; }
+.sec-body { background:white; border-radius:10px; padding:20px 24px;
+    margin-bottom:6px; box-shadow:0 2px 12px rgba(0,0,0,.06); }
 
-.ai-summary { font-family:'Inter',sans-serif; font-size:14px; color:#1e293b; line-height:1.75;
-    background:#f0f7ff; border-left:3px solid #3B82F6; padding:16px 20px;
-    border-radius:0 6px 6px 0; margin-bottom:14px; }
-.ai-label { font-family:'Inter',sans-serif; font-size:11px; font-weight:700;
-    color:#3B82F6; text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
+.ai-summary { font-family:'Inter',sans-serif; font-size:14px; color:#1e293b; line-height:1.85;
+    text-align:justify; padding:20px 24px; border-radius:10px;
+    background:white; box-shadow:0 2px 12px rgba(0,0,0,.06); margin-bottom:0; }
+.ai-label { display:none; }
+.doc-card { display:flex; align-items:center; justify-content:space-between;
+    background:#1e293b; border-radius:10px; padding:18px 24px; margin-bottom:12px;
+    text-decoration:none; transition:background .15s; }
+.doc-card:hover { background:#0f172a; }
+.doc-card-title { font-family:'Playfair Display',serif; font-size:16px; color:#fff; font-weight:700; }
+.doc-card-sub { font-family:'Inter',sans-serif; font-size:12px; color:#94a3b8; margin-top:3px; }
+.doc-card-arrow { font-size:20px; color:#3B82F6; }
 .workflow-step { display:flex; align-items:flex-start; gap:14px; padding:10px 0; border-bottom:1px solid #f1f5f9; }
 .workflow-step:last-child { border-bottom:none; }
 .step-icon { width:30px; height:30px; border-radius:50%; display:flex; align-items:center;
@@ -173,11 +178,6 @@ div[data-testid="stSidebar"] .stTextInput input {
 .step-done { background:#dcfce7; } .step-pending { background:#fef9c3; } .step-wait { background:#f1f5f9; }
 .step-text { font-family:'Inter',sans-serif; font-size:13px; color:#374151; font-weight:500; }
 .step-date { font-size:11px; color:#94a3b8; margin-top:2px; }
-.dl-link { display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border-radius:6px;
-    font-family:'Inter',sans-serif; font-size:13px; font-weight:700; text-decoration:none; margin-top:6px; }
-.dl-pdf  { background:#fee2e2; color:#b91c1c; }
-.dl-docx { background:#dbeafe; color:#1d4ed8; }
-.dl-orig { background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -351,35 +351,30 @@ elif st.session_state.page == "Dettaglio pratica":
         wf = rec.get("Stato_workflow", "in_elaborazione")
 
         with col_main:
-            sec("📄", "Il reclamo")
+            sec("", "Analisi del reclamo")
             if wf == "elaborato" and rec.get("Sintesi_AI"):
-                st.markdown(f'<div class="ai-label">🤖 Sintesi Banksolving AI</div>'
-                            f'<div class="ai-summary">{rec["Sintesi_AI"]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="ai-summary">{rec["Sintesi_AI"]}</div>', unsafe_allow_html=True)
             else:
-                st.warning("⏳ Elaborazione AI in corso. La sintesi sarà disponibile a breve.")
-            if rec.get("PDF_reclamo"):
-                st.markdown('<br><a href="#" class="dl-link dl-orig">📎 &nbsp; Apri PDF reclamo originale</a>',
-                            unsafe_allow_html=True)
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+                st.warning("⏳ Elaborazione in corso. L'analisi sarà disponibile a breve.")
+            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-            sec("🧠", "Documenti generati da Banksolving", "green")
+            sec("", "Analisi Resolva", "green")
             if wf == "elaborato":
-                d1, d2 = st.columns(2)
-                with d1:
-                    st.markdown("**Nota tecnica**")
-                    st.caption("Analisi giuridica con riferimenti normativi e decisioni ABF.")
-                    if rec.get("PDF_nota"):
-                        st.link_button("⬇ Apri nota tecnica (PDF)", rec["PDF_nota"], use_container_width=True)
-                with d2:
-                    st.markdown("**Bozza di risposta**")
-                    st.caption("Documento editabile pronto per revisione e invio.")
-                    if rec.get("DOCX_bozza"):
-                        st.link_button("⬇ Apri bozza risposta (Docs)", rec["DOCX_bozza"], use_container_width=True)
+                if rec.get("PDF_nota"):
+                    st.markdown(f'<a href="{rec["PDF_nota"]}" target="_blank" class="doc-card">'
+                                f'<div><div class="doc-card-title">Nota Tecnica</div>'
+                                f'<div class="doc-card-sub">Parere giuridico · Riferimenti normativi · Decisioni ABF</div></div>'
+                                f'<span class="doc-card-arrow">→</span></a>', unsafe_allow_html=True)
+                if rec.get("DOCX_bozza"):
+                    st.markdown(f'<a href="{rec["DOCX_bozza"]}" target="_blank" class="doc-card">'
+                                f'<div><div class="doc-card-title">Bozza di Risposta</div>'
+                                f'<div class="doc-card-sub">Documento editabile · Pronto per revisione e invio</div></div>'
+                                f'<span class="doc-card-arrow">→</span></a>', unsafe_allow_html=True)
             else:
-                st.info("I documenti saranno disponibili al termine dell'elaborazione AI.")
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+                st.info("I documenti saranno disponibili al termine dell'elaborazione.")
+            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-            sec("📝", "Note operative", "amber")
+            sec("", "Note operative", "amber")
             note_val = st.text_area("Note", value=rec.get("Note",""), height=110,
                 key=f"note_{rec['ID']}", label_visibility="collapsed",
                 placeholder="Note interne non visibili al cliente...")
