@@ -324,123 +324,213 @@ if search_query and not df.empty:
 # 1. RECLAMI ATTIVI
 # ============================================================
 # ============================================================
-# 0. DASHBOARD — WAR ROOM
+# 0. DASHBOARD
 # ============================================================
 if st.session_state.page == "Dashboard":
     db_now = get_db()
-    df_all = pd.DataFrame(db_now)
+    df_all = pd.DataFrame(db_now) if get_db() else pd.DataFrame()
 
-    attivi    = df_all[df_all['Stato'] == 'Attivo']    if not df_all.empty else pd.DataFrame()
-    archiviati= df_all[df_all['Stato'] == 'Archiviato'] if not df_all.empty else pd.DataFrame()
-    elaborati = df_all[df_all['Stato_workflow'] == 'elaborato'] if not df_all.empty else pd.DataFrame()
-    rigettati_df = df_all[df_all['Esito'] == 'Rigettato'] if not df_all.empty else pd.DataFrame()
-    valore_totale = int(attivi['Valore'].sum()) if not attivi.empty else 0
-    n_attivi   = len(attivi)
-    n_archiviate = len(archiviati)
-    n_elaborati = len(elaborati)
-    n_rigettati = len(rigettati_df)
+    ruolo = st.session_state.ruolo
 
-    # ── Background scuro per tutta la dashboard ──
-    st.markdown("""<style>
-    .dashboard-bg { background:#0f172a; min-height:100vh; margin:-2rem; padding:2rem; }
-    </style>""", unsafe_allow_html=True)
+    # ── dati calcolati ──
+    if not df_all.empty:
+        attivi_df     = df_all[df_all['Stato'] == 'Attivo']
+        archiviati_df = df_all[df_all['Stato'] == 'Archiviato']
+        da_assegnare  = attivi_df[attivi_df['Operatore'].isin(['Da assegnare', '', None])] if not attivi_df.empty else pd.DataFrame()
+        da_approvare  = attivi_df[attivi_df['Stato_workflow'] == 'elaborato'] if not attivi_df.empty else pd.DataFrame()
+        accolti_df    = df_all[df_all['Esito'] == 'Accolto']
+        rigettati_df  = df_all[df_all['Esito'] == 'Rigettato']
+        n_attivi      = len(attivi_df)
+        n_archiviate  = len(archiviati_df)
+        n_accolti     = len(accolti_df)
+        n_rigettati   = len(rigettati_df)
+        valore_tot    = int(attivi_df['Valore'].sum()) if not attivi_df.empty else 0
+        valore_medio  = int(df_all['Valore'].mean()) if not df_all.empty else 0
+        totale_chiuse = max(n_accolti + n_rigettati, 1)
+        tasso_accolto = int(n_accolti / totale_chiuse * 100)
+        tasso_rigetto = int(n_rigettati / totale_chiuse * 100)
+    else:
+        attivi_df = da_assegnare = da_approvare = archiviati_df = pd.DataFrame()
+        n_attivi = n_archiviate = n_accolti = n_rigettati = valore_tot = valore_medio = 0
+        tasso_accolto = tasso_rigetto = 0
 
-    # ── Titolo ──
-    st.markdown(
-        '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-        'text-transform:uppercase;letter-spacing:.18em;color:#94a3b8;margin-bottom:24px;">'
-        'Dashboard</p>',
-        unsafe_allow_html=True)
+    # ══════════════════════════════════════════════
+    # DASHBOARD RESPONSABILE
+    # ══════════════════════════════════════════════
+    if ruolo == "Responsabile":
 
-    # ── 4 KPI ──
-    k1,k2,k3,k4 = st.columns(4)
-
-    def kpi_war(col, label, value, sub, accent="#3B82F6"):
-        col.markdown(
-            f'<div style="background:#1e293b;border-radius:12px;padding:24px 28px;'
-            f'border-left:3px solid {accent};">'
-            f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-            f'color:#475569;text-transform:uppercase;letter-spacing:.12em;margin:0 0 12px 0;">{label}</p>'
-            f'<p style="font-family:Playfair Display,serif;font-size:38px;font-weight:700;'
-            f'color:white;margin:0 0 6px 0;line-height:1;">{value}</p>'
-            f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#475569;margin:0;">{sub}</p>'
-            f'</div>',
+        # Titolo
+        st.markdown(
+            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:24px;">'
+            'Dashboard · Responsabile</p>',
             unsafe_allow_html=True)
 
-    kpi_war(k1, "Pratiche attive",    n_attivi,         "in gestione",           "#3B82F6")
-    kpi_war(k2, "Valore gestito",     f"€ {valore_totale:,}", "portafoglio attivo", "#3B82F6")
-    kpi_war(k3, "Elaborate",          n_elaborati,      "analisi AI completata",  "#10b981")
-    kpi_war(k4, "Rigettate",          n_rigettati,      "da monitorare",          "#ef4444")
-
-    st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
-
-    # ── Seconda riga: stati + ultime pratiche ──
-    col_stati, col_recenti = st.columns([1, 2])
-
-    with col_stati:
+        # ── SEZIONE 1: KPI STATISTICHE ──
         st.markdown(
             '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-            'color:#475569;text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px;">'
-            'Stato portafoglio</p>',
-            unsafe_allow_html=True)
+            'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;">'
+            'Statistiche portafoglio</p>', unsafe_allow_html=True)
 
-        in_analisi = len(df_all[df_all['Esito'] == 'In analisi']) if not df_all.empty else 0
-        draft      = len(df_all[df_all['Esito'] == 'Draft'])      if not df_all.empty else 0
-        accolti    = len(df_all[df_all['Esito'] == 'Accolto'])    if not df_all.empty else 0
-        totale = max(len(df_all), 1)
+        k1,k2,k3,k4 = st.columns(4)
 
-        def war_bar(label, n, color):
-            pct = int(n / totale * 100)
-            st.markdown(
-                f'<div style="margin-bottom:20px;">'
-                f'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
-                f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;">{label}</span>'
-                f'<span style="font-family:Playfair Display,serif;font-size:16px;font-weight:700;color:white;">{n}</span></div>'
-                f'<div style="background:#0f172a;border-radius:3px;height:4px;">'
-                f'<div style="background:{color};border-radius:3px;height:4px;width:{pct}%;transition:width .5s;"></div>'
-                f'</div></div>',
+        def kpi_exec(col, label, value, sub, color="#1e293b"):
+            col.markdown(
+                f'<div style="background:white;border-radius:10px;padding:20px 24px;'
+                f'box-shadow:0 2px 12px rgba(0,0,0,.06);border-top:3px solid {color};">'
+                f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                f'color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px 0;">{label}</p>'
+                f'<p style="font-family:Playfair Display,serif;font-size:32px;font-weight:700;'
+                f'color:{color};margin:0 0 4px 0;line-height:1;">{value}</p>'
+                f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#94a3b8;margin:0;">{sub}</p>'
+                f'</div>',
                 unsafe_allow_html=True)
 
-        st.markdown('<div style="background:#1e293b;border-radius:12px;padding:24px 28px;">', unsafe_allow_html=True)
-        war_bar("In analisi", in_analisi, "#64748b")
-        war_bar("Draft",      draft,      "#3B82F6")
-        war_bar("Accolti",    accolti,    "#10b981")
-        war_bar("Rigettati",  n_rigettati,"#ef4444")
-        st.markdown('</div>', unsafe_allow_html=True)
+        kpi_exec(k1, "Pratiche attive",    n_attivi,              "in gestione",         "#1e293b")
+        kpi_exec(k2, "Valore portafoglio", f"€ {valore_tot:,}",   "pratiche attive",     "#3B82F6")
+        kpi_exec(k3, "Tasso accoglimento", f"{tasso_accolto}%",   "pratiche concluse",   "#10b981")
+        kpi_exec(k4, "Tasso rigetto",      f"{tasso_rigetto}%",   "pratiche concluse",   "#ef4444")
 
-    with col_recenti:
-        st.markdown(
-            '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-            'color:#475569;text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px;">'
-            'Ultime pratiche caricate</p>',
-            unsafe_allow_html=True)
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-        if df_all.empty:
-            st.info("Nessuna pratica presente.")
+        k5,k6,k7,k8 = st.columns(4)
+        kpi_exec(k5, "Valore medio reclamo", f"€ {valore_medio:,}", "media storica",    "#1e293b")
+        kpi_exec(k6, "Archiviate totali",    n_archiviate,           "concluse",         "#1e293b")
+        kpi_exec(k7, "Da assegnare",         len(da_assegnare),      "in attesa",        "#f59e0b")
+        kpi_exec(k8, "Da approvare",         len(da_approvare),      "elaborate, in revisione", "#3B82F6")
+
+        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+
+        # ── SEZIONE 2: PRATICHE DA ASSEGNARE ──
+        col_title_a, col_pec = st.columns([4,1])
+        with col_title_a:
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
+                f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+                f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pratiche da assegnare</span>'
+                f'<span style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:12px;'
+                f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+                f'align-items:center;justify-content:center;">{len(da_assegnare)}</span></div>',
+                unsafe_allow_html=True)
+        with col_pec:
+            if st.button("📡 Sincronizza PEC", use_container_width=True):
+                st.toast("Sincronizzazione PEC disponibile nella versione completa")
+
+        if da_assegnare.empty:
+            st.info("Nessuna pratica da assegnare.")
         else:
-            ultime = df_all.tail(5).iloc[::-1]
-            # Header
-            st.markdown(
-                '<div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;'
-                'padding:10px 16px;margin-bottom:2px;">' +
-                ''.join(f'<span style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-                        f'color:#475569;letter-spacing:.1em;text-transform:uppercase;">{h}</span>'
-                        for h in ["ID Pratica","Cliente","Valore","Data","Stato"]) +
-                '</div>',
-                unsafe_allow_html=True)
-            for i, (_, row) in enumerate(ultime.iterrows()):
-                radius = "8px 8px 0 0" if i == 0 else ("0 0 8px 8px" if i == len(ultime)-1 else "0")
-                st.markdown(
-                    f'<div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;'
-                    f'background:#1e293b;padding:14px 16px;'
-                    f'border-bottom:1px solid #0f172a;align-items:center;border-radius:{radius};">'
-                    f'<span style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#e2e8f0;">{row["ID"]}</span>'
-                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;">{row["Cliente"]}</span>'
-                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;">€ {int(row["Valore"]):,}</span>'
-                    f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;">{row["Data"]}</span>'
-                    f'{badge(row["Esito"])}'
-                    f'</div>',
+            # Header tabella
+            col_h = st.columns([2,1,2,1,1.5,1])
+            for h_col, h_txt in zip(col_h, ["ID Pratica","Data","Cliente","Valore","Operatore","Stato"]):
+                h_col.markdown(
+                    f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
+                    f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h_txt}</span>',
                     unsafe_allow_html=True)
+            st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
+
+            for _, row in da_assegnare.iterrows():
+                c1,c2,c3,c4,c5,c6 = st.columns([2,1,2,1,1.5,1])
+                c1.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span>', unsafe_allow_html=True)
+                c2.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span>', unsafe_allow_html=True)
+                c3.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span>', unsafe_allow_html=True)
+                c4.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span>', unsafe_allow_html=True)
+                with c5:
+                    nuovo_op = st.selectbox("", OPERATORI, key=f"assegna_{row['ID']}", label_visibility="collapsed")
+                with c6:
+                    if st.button("Assegna", key=f"btn_assegna_{row['ID']}", use_container_width=True):
+                        sb_update(row["ID"], {"operatore": nuovo_op, "assegnato_a": nuovo_op})
+                        get_db.clear()
+                        st.rerun()
+                st.markdown('<hr style="margin:2px 0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
+
+        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+
+        # ── SEZIONE 3: PRATICHE IN ATTESA DI APPROVAZIONE ──
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">In attesa di approvazione</span>'
+            f'<span style="background:#3B82F6;color:white;font-family:Inter,sans-serif;font-size:12px;'
+            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'align-items:center;justify-content:center;">{len(da_approvare)}</span></div>',
+            unsafe_allow_html=True)
+
+        if da_approvare.empty:
+            st.info("Nessuna pratica in attesa di approvazione.")
+        else:
+            col_h2 = st.columns([2,1,2,1,1,1])
+            for h_col, h_txt in zip(col_h2, ["ID Pratica","Data","Cliente","Valore","Esito AI","Azione"]):
+                h_col.markdown(
+                    f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
+                    f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h_txt}</span>',
+                    unsafe_allow_html=True)
+            st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
+
+            for _, row in da_approvare.iterrows():
+                c1,c2,c3,c4,c5,c6 = st.columns([2,1,2,1,1,1])
+                c1.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span>', unsafe_allow_html=True)
+                c2.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span>', unsafe_allow_html=True)
+                c3.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span>', unsafe_allow_html=True)
+                c4.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span>', unsafe_allow_html=True)
+                c5.markdown(badge(row["Esito"]), unsafe_allow_html=True)
+                if c6.button("Apri →", key=f"appr_{row['ID']}"):
+                    st.session_state.id_selezionato = row["ID"]
+                    st.session_state.page = "Dettaglio pratica"
+                    st.rerun()
+                st.markdown('<hr style="margin:2px 0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
+
+    # ══════════════════════════════════════════════
+    # DASHBOARD OPERATORE
+    # ══════════════════════════════════════════════
+    else:
+        st.markdown(
+            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:24px;">'
+            'Dashboard · Operatore</p>',
+            unsafe_allow_html=True)
+
+        nome_op = st.session_state.utente
+        mie_pratiche = attivi_df[attivi_df['Operatore'] == nome_op] if not attivi_df.empty else pd.DataFrame()
+        mie_elaborate = mie_pratiche[mie_pratiche['Stato_workflow'] == 'elaborato'] if not mie_pratiche.empty else pd.DataFrame()
+
+        k1,k2,k3 = st.columns(3)
+        kpi_exec(k1, "Pratiche assegnate",  len(mie_pratiche),  "a te",                "#1e293b")
+        kpi_exec(k2, "Da revisionare",      len(mie_elaborate), "elaborate da Resolva", "#3B82F6")
+        kpi_exec(k3, "Da assegnare",        len(da_assegnare),  "in attesa",            "#f59e0b")
+
+        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Le mie pratiche</span>'
+            f'<span style="background:#1e293b;color:white;font-family:Inter,sans-serif;font-size:12px;'
+            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'align-items:center;justify-content:center;">{len(mie_pratiche)}</span></div>',
+            unsafe_allow_html=True)
+
+        if mie_pratiche.empty:
+            st.info("Nessuna pratica assegnata.")
+        else:
+            col_h = st.columns([2,1,2,1,1,0.8])
+            for h_col, h_txt in zip(col_h, ["ID Pratica","Data","Cliente","Valore","Stato",""]):
+                h_col.markdown(
+                    f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
+                    f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h_txt}</span>',
+                    unsafe_allow_html=True)
+            st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
+            for _, row in mie_pratiche.iterrows():
+                c1,c2,c3,c4,c5,c6 = st.columns([2,1,2,1,1,0.8])
+                c1.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span>', unsafe_allow_html=True)
+                c2.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span>', unsafe_allow_html=True)
+                c3.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span>', unsafe_allow_html=True)
+                c4.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span>', unsafe_allow_html=True)
+                c5.markdown(badge(row["Esito"]), unsafe_allow_html=True)
+                if c6.button("→", key=f"op_{row['ID']}"):
+                    st.session_state.id_selezionato = row["ID"]
+                    st.session_state.page = "Dettaglio pratica"
+                    st.rerun()
+                st.markdown('<hr style="margin:2px 0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
 
 
 elif st.session_state.page == "Reclami attivi":
