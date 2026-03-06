@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import httpx
 import json
+from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="Resolva - Gestione Reclami", page_icon="⚖️", layout="wide")
 
@@ -179,6 +180,9 @@ div[data-testid="stSidebar"] .stTextInput input {
 .dl-orig { background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; }
 </style>
 """, unsafe_allow_html=True)
+
+# ── AUTO REFRESH ogni 20 secondi ──
+st_autorefresh(interval=20000, silent=True)
 
 # ── STATO ──
 if 'page' not in st.session_state:
