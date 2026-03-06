@@ -113,10 +113,10 @@ st.markdown("""
     padding:8px 10px !important; width:100% !important; box-shadow:none !important; }
 [data-testid="stSidebar"] .stButton > button:hover { color:#fff !important; background:#1F2937 !important; }
 .header-container { display:flex; align-items:center; margin-bottom:24px; }
-.main-title { font-family:'Playfair Display',serif; font-size:42px; color:#111827; margin-right:25px; }
-.counter-badge { background:#3B82F6; color:white; border-radius:50%; width:65px; height:65px;
+.main-title { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; text-transform:uppercase; letter-spacing:.18em; color:#1e293b; margin-right:16px; }
+.counter-badge { background:#3B82F6; color:white; border-radius:50%; width:28px; height:28px;
     display:flex; align-items:center; justify-content:center;
-    font-family:'Inter',sans-serif; font-size:28px; font-weight:700; box-shadow:0 4px 10px rgba(0,0,0,.15); }
+    font-family:'Inter',sans-serif; font-size:13px; font-weight:700; box-shadow:0 4px 10px rgba(0,0,0,.15); }
 div[data-testid="stSidebar"] .stTextInput input {
     background:#1F2937 !important; color:white !important; border:1px solid #374151 !important; border-radius:4px; }
 .sidebar-divider { border-bottom:1px solid #374151; margin:15px 0; }
@@ -137,7 +137,7 @@ div[data-testid="stSidebar"] .stTextInput input {
 .badge-accolto   { background:#dcfce7; color:#15803d; }
 .badge-rigettato { background:#fee2e2; color:#b91c1c; }
 .badge-analisi   { background:#e2e8f0; color:#475569; }
-.badge-draft     { background:#1e293b; color:#ffffff; }
+.badge-draft     { background:#3B82F6; color:#ffffff; }
 
 .fascicolo-header { background:#1e293b; border-radius:10px; padding:24px 32px; margin-bottom:20px;
     display:flex; align-items:center; justify-content:space-between; }
@@ -243,11 +243,30 @@ if search_query and not df.empty:
 # 1. RECLAMI ATTIVI
 # ============================================================
 if st.session_state.page == "Reclami attivi":
-    data_view = df[df['Stato'] == "Attivo"].reset_index(drop=True)
-    st.markdown(f'<div class="header-container"><span class="main-title">Reclami attivi</span>'
-                f'<div class="counter-badge">{len(data_view)}</div></div>', unsafe_allow_html=True)
+    data_all = df[df['Stato'] == "Attivo"].reset_index(drop=True)
+
+    # Titolo + cerca top right
+    col_title, _, col_cerca = st.columns([3, 1, 2])
+    with col_title:
+        st.markdown(
+            f'<div class="header-container">'
+            f'<span class="main-title">Reclami attivi</span>'
+            f'<div class="counter-badge">{len(data_all)}</div></div>',
+            unsafe_allow_html=True)
+    with col_cerca:
+        st.markdown('<div style="margin-top:8px;"></div>', unsafe_allow_html=True)
+        cerca = st.text_input("", placeholder="🔍 Cerca cliente...", label_visibility="collapsed", key="cerca_attivi")
+        if cerca:
+            if st.button("✕ Cancella ricerca", key="reset_cerca"):
+                st.session_state["cerca_attivi"] = ""
+                st.rerun()
+
+    data_view = data_all.copy()
+    if cerca:
+        data_view = data_all[data_all["Cliente"].str.contains(cerca, case=False, na=False)].reset_index(drop=True)
+
     if data_view.empty:
-        st.info("Nessun reclamo attivo.")
+        st.info("Nessun reclamo trovato.")
     else:
         st.markdown(build_table(data_view,
             ["ID","Data","Cliente","Valore","Operatore","Esito"],
@@ -258,6 +277,17 @@ if st.session_state.page == "Reclami attivi":
         with col_sel:
             scelta = st.selectbox("Seleziona pratica", labels, label_visibility="collapsed")
         with col_btn:
+            st.markdown("""<style>
+            div[data-testid="column"] button[kind="secondary"] {
+                background:#3B82F6 !important; color:white !important;
+                border:none !important; font-weight:600 !important;
+            }
+            div[data-testid="column"] button[kind="secondary"]:hover {
+                background:#2563eb !important;
+            }
+            div[data-baseweb="select"] > div { transition: border-color .15s, box-shadow .15s; }
+            div[data-baseweb="select"] > div:hover { border-color:#3B82F6 !important; box-shadow:0 0 0 2px rgba(59,130,246,.25) !important; }
+            </style>""", unsafe_allow_html=True)
             if st.button("Apri pratica →", use_container_width=True):
                 st.session_state.id_selezionato = ids[labels.index(scelta)]
                 st.session_state.page = "Dettaglio pratica"
