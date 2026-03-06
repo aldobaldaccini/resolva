@@ -114,7 +114,7 @@ st.markdown("""
 [data-testid="stSidebar"] .stButton > button:hover { color:#fff !important; background:#1F2937 !important; }
 .header-container { display:flex; align-items:center; margin-bottom:24px; }
 .main-title { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; text-transform:uppercase; letter-spacing:.18em; color:#1e293b; margin-right:16px; }
-.counter-badge { background:#3B82F6; color:white; border-radius:50%; width:28px; height:28px;
+.counter-badge { background:#3B82F6; color:white; border-radius:50%; width:36px; height:36px;
     display:flex; align-items:center; justify-content:center;
     font-family:'Inter',sans-serif; font-size:13px; font-weight:700; box-shadow:0 4px 10px rgba(0,0,0,.15); }
 div[data-testid="stSidebar"] .stTextInput input {
@@ -137,7 +137,7 @@ div[data-testid="stSidebar"] .stTextInput input {
 .badge-accolto   { background:#dcfce7; color:#15803d; }
 .badge-rigettato { background:#fee2e2; color:#b91c1c; }
 .badge-analisi   { background:#e2e8f0; color:#475569; }
-.badge-draft     { background:#3B82F6; color:#ffffff; }
+.badge-draft     { background:#1e293b; color:#ffffff; }
 
 .fascicolo-header { background:#1e293b; border-radius:10px; padding:24px 32px; margin-bottom:20px;
     display:flex; align-items:center; justify-content:space-between; }
@@ -246,9 +246,17 @@ if st.session_state.page == "Reclami attivi":
     data_all = df[df['Stato'] == "Attivo"].reset_index(drop=True)
 
     st.markdown("""<style>
+    /* selectbox hover */
     div[data-baseweb="select"] > div { transition: border-color .15s, box-shadow .15s; }
     div[data-baseweb="select"] > div:hover { border-color:#3B82F6 !important; box-shadow:0 0 0 2px rgba(59,130,246,.25) !important; }
     div[data-baseweb="select"] > div:focus-within { border-color:#3B82F6 !important; box-shadow:0 0 0 2px rgba(59,130,246,.25) !important; }
+    /* text input hover/focus */
+    div[data-testid="stTextInput"] input:hover { border-color:#3B82F6 !important; }
+    div[data-testid="stTextInput"] input:focus { border-color:#3B82F6 !important; box-shadow:0 0 0 2px rgba(59,130,246,.25) !important; }
+    /* align selectbox and button to same height */
+    div[data-testid="stHorizontalBlock"] div[data-testid="stSelectbox"],
+    div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] { margin-top:0 !important; padding-top:0 !important; }
+    div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button { height:42px !important; margin-top:0 !important; }
     </style>""", unsafe_allow_html=True)
 
     # Titolo + cerca sulla stessa riga, allineati
@@ -260,7 +268,7 @@ if st.session_state.page == "Reclami attivi":
             f'<div class="counter-badge">{len(data_all)}</div></div>',
             unsafe_allow_html=True)
     with col_cerca:
-        cerca = st.text_input("", placeholder="🔍  Cerca per nome cliente...", label_visibility="collapsed")
+        cerca = st.text_input("", placeholder="Cerca per nome cliente...", label_visibility="collapsed")
 
     data_view = data_all.copy()
     if cerca:
