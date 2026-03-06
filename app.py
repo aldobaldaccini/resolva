@@ -182,7 +182,7 @@ div[data-testid="stSidebar"] .stTextInput input {
 """, unsafe_allow_html=True)
 
 # ── AUTO REFRESH ogni 20 secondi ──
-st_autorefresh(interval=20000, silent=True)
+st_autorefresh(interval=20000, key="autorefresh")
 
 # ── STATO ──
 if 'page' not in st.session_state:
