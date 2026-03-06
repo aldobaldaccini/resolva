@@ -194,6 +194,11 @@ if 'ruolo' not in st.session_state:
 # ── AUTO REFRESH ogni 20 secondi ──
 st_autorefresh(interval=20000, key="autorefresh")
 
+UTENTI = {
+    "operatore": {"password": "resolva2026", "ruolo": "Operatore", "nome": "M. Rossi"},
+    "responsabile": {"password": "resolva2026", "ruolo": "Responsabile", "nome": "A. Baldaccini"},
+}
+
 # ── LOGIN GATE ──
 if not st.session_state.logged_in:
     st.markdown("""
@@ -237,10 +242,7 @@ if not st.session_state.logged_in:
         </p>""", unsafe_allow_html=True)
     st.stop()
 
-UTENTI = {
-    "operatore": {"password": "resolva2026", "ruolo": "Operatore", "nome": "M. Rossi"},
-    "responsabile": {"password": "resolva2026", "ruolo": "Responsabile", "nome": "A. Baldaccini"},
-}
+
 
 OPERATORI = ["M. Rossi", "E. Verdi", "F. Bruno", "C. Marino"]
 
