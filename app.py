@@ -244,66 +244,24 @@ if search_query and not df.empty:
 # ============================================================
 if st.session_state.page == "Reclami attivi":
     data_view = df[df['Stato'] == "Attivo"].reset_index(drop=True)
-
-    # Titolo + contatore + cerca sulla stessa riga
-    n = len(data_view)
-    th, _, tc = st.columns([3, 1, 2])
-    with th:
-        st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Reclami attivi</span>'
-            f'<span style="background:#1e293b;color:#fff;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
-            f'align-items:center;justify-content:center;">{n}</span></div>',
-            unsafe_allow_html=True)
-    with tc:
-        cerca = st.text_input("", placeholder="🔍 Cerca cliente...", label_visibility="collapsed")
-
-    if cerca:
-        data_view = data_view[data_view["Cliente"].str.contains(cerca, case=False, na=False)].reset_index(drop=True)
-
+    st.markdown(f'<div class="header-container"><span class="main-title">Reclami attivi</span>'
+                f'<div class="counter-badge">{len(data_view)}</div></div>', unsafe_allow_html=True)
     if data_view.empty:
-        st.info("Nessun reclamo trovato.")
+        st.info("Nessun reclamo attivo.")
     else:
-        # Header
-        st.markdown(
-            '<div style="display:grid;grid-template-columns:2fr 1fr 2fr 1fr 1.5fr 1fr;'
-            'background:#1e293b;border-radius:8px 8px 0 0;padding:11px 20px;margin-top:12px;">' +
-            ''.join(f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;'
-                    f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h}</span>'
-                    for h in ["ID Pratica","Data","Cliente","Valore","Operatore","Stato"]) +
-            '</div>',
-            unsafe_allow_html=True)
-
-        # Righe cliccabili
-        st.markdown("""<style>
-        div[data-testid="stHorizontalBlock"] .row-widget.stButton button {
-            background:white; border:none; border-bottom:1px solid #f1f5f9;
-            border-radius:0; padding:14px 0; width:100%; text-align:left;
-            font-family:Inter,sans-serif; color:#1e293b; cursor:pointer;
-        }
-        div[data-testid="stHorizontalBlock"] .row-widget.stButton button:hover {
-            background:#f8fafc;
-        }
-        </style>""", unsafe_allow_html=True)
-
-        for _, row in data_view.iterrows():
-            rid = row["ID"]
-            c1,c2,c3,c4,c5,c6,c7 = st.columns([2,1,2,1,1.5,1.2,0.4])
-            c1.markdown(f'<div style="background:white;padding:14px 0 14px 0;font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;border-bottom:1px solid #f1f5f9;">{rid}</div>', unsafe_allow_html=True)
-            c2.markdown(f'<div style="background:white;padding:14px 0;font-family:Inter,sans-serif;font-size:13px;color:#475569;border-bottom:1px solid #f1f5f9;">{row["Data"]}</div>', unsafe_allow_html=True)
-            c3.markdown(f'<div style="background:white;padding:14px 0;font-family:Inter,sans-serif;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;">{row["Cliente"]}</div>', unsafe_allow_html=True)
-            c4.markdown(f'<div style="background:white;padding:14px 0;font-family:Inter,sans-serif;font-size:13px;color:#475569;border-bottom:1px solid #f1f5f9;">€ {row["Valore"]:,}</div>', unsafe_allow_html=True)
-            c5.markdown(f'<div style="background:white;padding:14px 0;font-family:Inter,sans-serif;font-size:13px;color:#475569;border-bottom:1px solid #f1f5f9;">{row["Operatore"]}</div>', unsafe_allow_html=True)
-            c6.markdown(f'<div style="background:white;padding:10px 0;border-bottom:1px solid #f1f5f9;">{badge(row["Esito"])}</div>', unsafe_allow_html=True)
-            with c7:
-                if st.button("→", key=f"open_{rid}"):
-                    st.session_state.id_selezionato = rid
-                    st.session_state.page = "Dettaglio pratica"
-                    st.rerun()
-
-        st.markdown('<div style="height:8px;background:white;border-radius:0 0 8px 8px;"></div>', unsafe_allow_html=True)
+        st.markdown(build_table(data_view,
+            ["ID","Data","Cliente","Valore","Operatore","Esito"],
+            ["ID Pratica","Data","Cliente","Valore (€)","Operatore","Stato"]), unsafe_allow_html=True)
+        ids = data_view["ID"].tolist()
+        labels = [f"{r['ID']} — {r['Cliente']}" for _, r in data_view.iterrows()]
+        col_sel, col_btn = st.columns([3, 1])
+        with col_sel:
+            scelta = st.selectbox("Seleziona pratica", labels, label_visibility="collapsed")
+        with col_btn:
+            if st.button("Apri pratica →", use_container_width=True):
+                st.session_state.id_selezionato = ids[labels.index(scelta)]
+                st.session_state.page = "Dettaglio pratica"
+                st.rerun()
 
 # ============================================================
 # 2. RECLAMI ARCHIVIATI
