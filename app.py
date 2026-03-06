@@ -244,24 +244,45 @@ if search_query and not df.empty:
 # ============================================================
 if st.session_state.page == "Reclami attivi":
     data_view = df[df['Stato'] == "Attivo"].reset_index(drop=True)
-    st.markdown(f'<div class="header-container"><span class="main-title">Reclami attivi</span>'
-                f'<div class="counter-badge">{len(data_view)}</div></div>', unsafe_allow_html=True)
+
+    n = len(data_view)
+    st.markdown(
+        f'<div style="display:flex;align-items:baseline;gap:16px;margin-bottom:20px;">'
+        f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+        f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Reclami attivi</span>'
+        f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#64748b;font-weight:500;">'
+        f'{n} pratiche</span></div>',
+        unsafe_allow_html=True)
+
+    cerca = st.text_input("", placeholder="🔍  Cerca per nome cliente...", label_visibility="collapsed")
+    if cerca:
+        data_view = data_view[data_view["Cliente"].str.contains(cerca, case=False, na=False)].reset_index(drop=True)
+
     if data_view.empty:
         st.info("Nessun reclamo attivo.")
     else:
-        st.markdown(build_table(data_view,
-            ["ID","Data","Cliente","Valore","Operatore","Esito"],
-            ["ID Pratica","Data","Cliente","Valore (€)","Operatore","Stato"]), unsafe_allow_html=True)
-        ids = data_view["ID"].tolist()
-        labels = [f"{r['ID']} — {r['Cliente']}" for _, r in data_view.iterrows()]
-        col_sel, col_btn = st.columns([3, 1])
-        with col_sel:
-            scelta = st.selectbox("Seleziona pratica", labels, label_visibility="collapsed")
-        with col_btn:
-            if st.button("Apri pratica →", use_container_width=True):
-                st.session_state.id_selezionato = ids[labels.index(scelta)]
+        col_h = st.columns([2,1,2,1,1.5,1,0.5])
+        headers = ["ID Pratica","Data","Cliente","Valore","Operatore","Stato",""]
+        for i, h in enumerate(headers):
+            col_h[i].markdown(
+                f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
+                f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h}</span>',
+                unsafe_allow_html=True)
+        st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
+
+        for _, row in data_view.iterrows():
+            c1,c2,c3,c4,c5,c6,c7 = st.columns([2,1,2,1,1.5,1,0.5])
+            c1.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span>', unsafe_allow_html=True)
+            c2.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span>', unsafe_allow_html=True)
+            c3.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span>', unsafe_allow_html=True)
+            c4.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {row["Valore"]:,}</span>', unsafe_allow_html=True)
+            c5.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Operatore"]}</span>', unsafe_allow_html=True)
+            c6.markdown(badge(row["Esito"]), unsafe_allow_html=True)
+            if c7.button("→", key=f"open_{row['ID']}"):
+                st.session_state.id_selezionato = row["ID"]
                 st.session_state.page = "Dettaglio pratica"
                 st.rerun()
+            st.markdown('<hr style="margin:2px 0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
 
 # ============================================================
 # 2. RECLAMI ARCHIVIATI
@@ -353,7 +374,10 @@ elif st.session_state.page == "Dettaglio pratica":
         with col_main:
             sec("", "Analisi del reclamo")
             if wf == "elaborato" and rec.get("Sintesi_AI"):
-                st.markdown(f'<div class="ai-summary">{rec["Sintesi_AI"]}</div>', unsafe_allow_html=True)
+                import re
+                sintesi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', rec["Sintesi_AI"])
+                sintesi_html = re.sub(r'\*(.+?)\*', r'<strong>\1</strong>', sintesi_html)
+                st.markdown(f'<div class="ai-summary">{sintesi_html}</div>', unsafe_allow_html=True)
             else:
                 st.warning("⏳ Elaborazione in corso. L'analisi sarà disponibile a breve.")
             st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
