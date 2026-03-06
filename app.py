@@ -360,16 +360,25 @@ elif st.session_state.page == "Dettaglio pratica":
 
             sec("", "Analisi Resolva", "green")
             if wf == "elaborato":
-                if rec.get("PDF_nota"):
-                    st.markdown(f'<a href="{rec["PDF_nota"]}" target="_blank" class="doc-card">'
-                                f'<div><div class="doc-card-title">Nota Tecnica</div>'
-                                f'<div class="doc-card-sub">Parere giuridico · Riferimenti normativi · Decisioni ABF</div></div>'
-                                f'<span class="doc-card-arrow">→</span></a>', unsafe_allow_html=True)
-                if rec.get("DOCX_bozza"):
-                    st.markdown(f'<a href="{rec["DOCX_bozza"]}" target="_blank" class="doc-card">'
-                                f'<div><div class="doc-card-title">Bozza di Risposta</div>'
-                                f'<div class="doc-card-sub">Documento editabile · Pronto per revisione e invio</div></div>'
-                                f'<span class="doc-card-arrow">→</span></a>', unsafe_allow_html=True)
+                pdf_link = rec.get("PDF_nota", "#")
+                docx_link = rec.get("DOCX_bozza", "#")
+                st.markdown(f'''
+                <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+                    <a href="{pdf_link}" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:#1e293b;border-radius:10px;padding:18px 24px;text-decoration:none;">
+                        <div>
+                            <div style="font-family:Playfair Display,serif;font-size:16px;color:#fff;font-weight:700;">Nota Tecnica</div>
+                            <div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;margin-top:4px;">Parere giuridico · Riferimenti normativi · Decisioni ABF</div>
+                        </div>
+                        <span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span>
+                    </a>
+                    <a href="{docx_link}" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:#1e293b;border-radius:10px;padding:18px 24px;text-decoration:none;">
+                        <div>
+                            <div style="font-family:Playfair Display,serif;font-size:16px;color:#fff;font-weight:700;">Bozza di Risposta</div>
+                            <div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;margin-top:4px;">Documento editabile · Pronto per revisione e invio</div>
+                        </div>
+                        <span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span>
+                    </a>
+                </div>''', unsafe_allow_html=True)
             else:
                 st.info("I documenti saranno disponibili al termine dell'elaborazione.")
             st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
