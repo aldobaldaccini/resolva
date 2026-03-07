@@ -361,23 +361,28 @@ if st.session_state.page == "Dashboard":
 
         # Titolo
         st.markdown(
-            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            '<p style="font-family:Playfair Display,serif;font-size:26px;font-weight:700;'
             'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:24px;">'
             'Dashboard · Responsabile</p>',
             unsafe_allow_html=True)
 
         # ── CSS pulsanti rossi ──
         st.markdown("""<style>
-        .btn-red button { background:#dc2626 !important; color:white !important;
-            border:none !important; font-weight:600 !important; }
-        .btn-red button:hover { background:#b91c1c !important; }
-        /* hover azzurro sui titoli sezione */
-        .sec-title { transition: color .2s; cursor: default; }
-        .sec-title:hover { color: #3B82F6 !important; }
+        /* pulsanti azione rossi dashboard */
+        div[data-testid="stButton"] button[kind="secondary"] {
+            background:#dc2626 !important; color:white !important;
+            border:none !important; font-weight:600 !important;
+            font-family:Inter,sans-serif !important;
+        }
+        div[data-testid="stButton"] button[kind="secondary"]:hover {
+            background:#b91c1c !important;
+        }
         /* hover azzurro sulle card statistiche */
         .kpi-card { transition: box-shadow .2s, transform .15s; }
-        .kpi-card:hover { box-shadow: 0 4px 16px rgba(59,130,246,.2) !important;
+        .kpi-card:hover { box-shadow: 0 4px 20px rgba(59,130,246,.25) !important;
             transform: translateY(-2px); }
+        /* hover azzurro selettori */
+        div[data-baseweb="select"] > div:hover { border-color:#3B82F6 !important; }
         </style>""", unsafe_allow_html=True)
 
         # ══ TASK 1: SINCRONIZZA PEC ══
@@ -387,15 +392,15 @@ if st.session_state.page == "Dashboard":
             'Sincronizzazione PEC</p>', unsafe_allow_html=True)
         st.markdown(
             '<div style="background:#e2e8f0;border-radius:10px;padding:20px 24px;margin-bottom:28px;">'
-            '<p style="font-family:Inter,sans-serif;font-size:13px;color:#475569;margin:0 0 16px 0;">'
-            'Importa i nuovi reclami ricevuti via PEC nella piattaforma.</p>'
+            '<p style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#64748b;'
+            'text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px 0;">Ultima sincronizzazione</p>'
+            '<p style="font-family:Playfair Display,serif;font-size:20px;font-weight:700;'
+            'color:#1e293b;margin:0;">06/03/2026 &nbsp;·&nbsp; 08:45</p>'
             '</div>', unsafe_allow_html=True)
         _, pec_btn = st.columns([4,1])
         with pec_btn:
-            st.markdown('<div class="btn-red">', unsafe_allow_html=True)
             if st.button("Sincronizza", use_container_width=True):
                 st.toast("Sincronizzazione PEC disponibile nella versione completa")
-            st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
 
@@ -425,13 +430,11 @@ if st.session_state.page == "Dashboard":
 
             _, btn_ass = st.columns([4, 1])
             with btn_ass:
-                st.markdown('<div class="btn-red">', unsafe_allow_html=True)
                 if st.button("Assegna", use_container_width=True, key="assegna_main"):
                     sb_update(pratica_id, {"operatore": op_scelto, "assegnato_a": op_scelto})
                     get_db.clear()
                     st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
-
+    
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
 
         # ══ TASK 3: IN ATTESA DI APPROVAZIONE ══
@@ -456,13 +459,11 @@ if st.session_state.page == "Dashboard":
 
             _, btn_appr = st.columns([4, 1])
             with btn_appr:
-                st.markdown('<div class="btn-red">', unsafe_allow_html=True)
                 if st.button("Apri", use_container_width=True, key="apri_appr"):
                     st.session_state.id_selezionato = appr_id
                     st.session_state.page = "Dettaglio pratica"
                     st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
-
+    
         st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
 
         # ══ STATISTICHE (in fondo) ══
