@@ -103,6 +103,9 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap');
 
 .stApp { background-color: #cbd5e1; }
+/* primary buttons = blu RE */
+.stButton button[kind="primary"] { background:#3B82F6 !important; border:none !important; }
+.stButton button[kind="primary"]:hover { background:#2563eb !important; }
 [data-testid="stSidebar"] { background-color: #111827 !important; }
 .brand-title { font-family:'Playfair Display',serif; color:#fff; font-size:32px; margin-bottom:0; padding-left:5px; }
 .brand-subtitle { font-family:'Inter',sans-serif; color:#94A3B8; font-size:13px; text-transform:uppercase;
@@ -368,18 +371,10 @@ if st.session_state.page == "Dashboard":
 
         # ── CSS pulsanti rossi ──
         st.markdown("""<style>
-        /* pulsanti azione rossi dashboard */
-        div[data-testid="stButton"] button[kind="secondary"] {
-            background:#dc2626 !important; color:white !important;
-            border:none !important; font-weight:600 !important;
-            font-family:Inter,sans-serif !important;
-        }
-        div[data-testid="stButton"] button[kind="secondary"]:hover {
-            background:#b91c1c !important;
-        }
-        /* hover azzurro sulle card statistiche */
-        .kpi-card { transition: box-shadow .2s, transform .15s; }
-        .kpi-card:hover { box-shadow: 0 4px 20px rgba(59,130,246,.25) !important;
+        /* hover azzurro sulle card statistiche e PEC */
+        .kpi-card, .pec-card { transition: box-shadow .2s, transform .15s; cursor:default; }
+        .kpi-card:hover, .pec-card:hover { 
+            box-shadow: 0 4px 20px rgba(59,130,246,.25) !important;
             transform: translateY(-2px); }
         /* hover azzurro selettori */
         div[data-baseweb="select"] > div:hover { border-color:#3B82F6 !important; }
@@ -391,7 +386,7 @@ if st.session_state.page == "Dashboard":
             'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:12px;">'
             'Sincronizzazione PEC</p>', unsafe_allow_html=True)
         st.markdown(
-            '<div style="background:#e2e8f0;border-radius:10px;padding:20px 24px;margin-bottom:28px;">'
+            '<div class="pec-card" style="background:#e2e8f0;border-radius:10px;padding:20px 24px;margin-bottom:28px;">'
             '<p style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#64748b;'
             'text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px 0;">Ultima sincronizzazione</p>'
             '<p style="font-family:Playfair Display,serif;font-size:20px;font-weight:700;'
@@ -399,7 +394,7 @@ if st.session_state.page == "Dashboard":
             '</div>', unsafe_allow_html=True)
         _, pec_btn = st.columns([4,1])
         with pec_btn:
-            if st.button("Sincronizza", use_container_width=True):
+            if st.button("Sincronizza", use_container_width=True, type="primary"):
                 st.toast("Sincronizzazione PEC disponibile nella versione completa")
 
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
@@ -430,7 +425,7 @@ if st.session_state.page == "Dashboard":
 
             _, btn_ass = st.columns([4, 1])
             with btn_ass:
-                if st.button("Assegna", use_container_width=True, key="assegna_main"):
+                if st.button("Assegna", use_container_width=True, key="assegna_main", type="primary"):
                     sb_update(pratica_id, {"operatore": op_scelto, "assegnato_a": op_scelto})
                     get_db.clear()
                     st.rerun()
@@ -459,7 +454,7 @@ if st.session_state.page == "Dashboard":
 
             _, btn_appr = st.columns([4, 1])
             with btn_appr:
-                if st.button("Apri", use_container_width=True, key="apri_appr"):
+                if st.button("Apri", use_container_width=True, key="apri_appr", type="primary"):
                     st.session_state.id_selezionato = appr_id
                     st.session_state.page = "Dettaglio pratica"
                     st.rerun()
