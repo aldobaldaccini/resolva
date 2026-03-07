@@ -770,27 +770,24 @@ elif st.session_state.page == "Dettaglio pratica":
             testo = rec.get("Testo_reclamo", "") or ""
             st.markdown(
                 f'<div style="margin-top:12px;">' +
-                (f'<a href="#" onclick="return false;" style="display:flex;align-items:center;' +
+                (f'<div style="display:flex;align-items:center;' +
                  f'justify-content:space-between;background:#1e293b;border-radius:10px;' +
-                 f'padding:18px 24px;text-decoration:none;cursor:pointer;">' +
+                 f'padding:18px 24px;cursor:pointer;">' +
                  f'<div><div style="font-family:Playfair Display,serif;font-size:16px;' +
                  f'color:#fff;font-weight:700;">Reclamo integrale</div>' +
                  f'<div style="font-family:Inter,sans-serif;font-size:12px;' +
-                 f'color:#94a3b8;margin-top:4px;">Testo originale del reclamo</div></div>' +
-                 f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span></a>' if testo else
+                 f'color:#94a3b8;margin-top:4px;">Documento PDF</div></div>' +
+                 f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span></div>' if testo else
                  f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;' +
                  f'opacity:0.4;"><div style="font-family:Playfair Display,serif;font-size:16px;' +
                  f'color:#fff;font-weight:700;">Reclamo integrale</div>' +
                  f'<div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;' +
-                 f'margin-top:4px;">Testo non disponibile</div></div>') +
+                 f'margin-top:4px;">Documento PDF</div></div>') +
                 f'</div>',
                 unsafe_allow_html=True)
             if testo:
-                with st.expander("", expanded=False):
-                    st.markdown(
-                        f'<div style="font-family:Inter,sans-serif;font-size:13px;' +
-                        f'color:#475569;line-height:1.7;">{testo}</div>',
-                        unsafe_allow_html=True)
+                if st.button("Apri reclamo integrale", key=f"reclamo_int_{rec['ID']}"):
+                    st.toast("Visualizzazione PDF disponibile nella versione completa")
 
             # Divisore
             st.markdown(
@@ -850,19 +847,19 @@ elif st.session_state.page == "Dettaglio pratica":
             else:
                 st.info("I documenti saranno disponibili al termine dell'elaborazione.")
         with col_side:
-            sec("⚙️", "Stato del flusso")
+            sec("", "Avanzamento analisi")
             steps = ([("✅","step-done","Reclamo ricevuto",rec['Data']),
                       ("✅","step-done","Analisi AI completata","oggi"),
                       ("✅","step-done","Nota tecnica generata","oggi"),
                       ("✅","step-done","Bozza risposta generata","oggi"),
-                      ("⏳","step-pending","Revisione operatore","in attesa"),
+                      ("⏳","step-pending","Valutazioni operatore","in attesa"),
                       ("🔒","step-wait","Invio al responsabile","—")]
                      if wf == "elaborato" else
                      [("✅","step-done","Reclamo ricevuto",rec['Data']),
                       ("⏳","step-pending","Analisi AI in corso","in corso..."),
                       ("🔒","step-wait","Nota tecnica","—"),
                       ("🔒","step-wait","Bozza risposta","—"),
-                      ("🔒","step-wait","Revisione operatore","—"),
+                      ("🔒","step-wait","Valutazioni operatore","—"),
                       ("🔒","step-wait","Invio al responsabile","—")])
             st.markdown(
                 '<div class="sec-body">' +
@@ -901,9 +898,9 @@ elif st.session_state.page == "Dettaglio pratica":
                 '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
                 'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px 0;">'
                 'Proposta di decisione</p>', unsafe_allow_html=True)
-            proposte = ["— nessuna proposta —", "Accogliere", "Rigettare", "Supplemento istruttorio"]
+            proposte = ["Accogliere", "Rigettare", "Supplemento istruttorio"]
             proposta_corrente = rec.get("Proposta_decisione", "— nessuna proposta —")
-            proposta_idx = proposte.index(proposta_corrente) if proposta_corrente in proposte else 0
+            proposta_idx = proposte.index(proposta_corrente) if proposta_corrente in proposte else 2
             proposta_sel = st.radio("Proposta", proposte, index=proposta_idx,
                 key=f"proposta_{rec['ID']}", label_visibility="collapsed", horizontal=True)
 
@@ -946,11 +943,11 @@ elif st.session_state.page == "Dettaglio pratica":
             valore_pratica = float(rec.get("Valore", 0) or 0)
             soglia = 1000.0
 
-            if st.button("💾  Salva valutazioni", key=f"salva_val_{rec['ID']}",
+            if st.button("Salva valutazioni", key=f"salva_val_{rec['ID']}",
                          use_container_width=True):
                 sb_update(rec["ID"], {
                     "note": note_val,
-                    "proposta_decisione": proposta_sel if proposta_sel != "— nessuna proposta —" else "",
+                    "proposta_decisione": proposta_sel,
                     "bozza_modificata": bozza_mod
                 })
                 get_db.clear()
@@ -965,7 +962,7 @@ elif st.session_state.page == "Dettaglio pratica":
                     "stato_workflow": "elaborato",
                     "esito": "Al responsabile",
                     "note": note_val,
-                    "proposta_decisione": proposta_sel if proposta_sel != "— nessuna proposta —" else "",
+                    "proposta_decisione": proposta_sel,
                     "bozza_modificata": bozza_mod
                 })
                 get_db.clear()
