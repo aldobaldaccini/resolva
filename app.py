@@ -138,6 +138,7 @@ div[data-testid="stSidebar"] .stTextInput input {
 .col-val { white-space:nowrap; font-variant-numeric:tabular-nums; }
 .badge { display:inline-block; padding:4px 11px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; }
 .badge-accolto   { background:#dcfce7; color:#15803d; }
+.badge-istruttoria { background:#fef3c7; color:#92400e; }
 .badge-rigettato { background:#fee2e2; color:#b91c1c; }
 .badge-analisi   { background:#e2e8f0; color:#475569; }
 .badge-draft     { background:#1e293b; color:#ffffff; }
@@ -253,7 +254,7 @@ OPERATORI = ["M. Rossi", "E. Verdi", "F. Bruno", "C. Marino"]
 def badge(esito):
     cls = {"In analisi":"badge-analisi","Draft":"badge-draft",
            "Rigettato":"badge-rigettato","Accolto":"badge-accolto",
-           "Al responsabile":"badge-responsabile"}.get(esito,"")
+           "Al responsabile":"badge-responsabile","In istruttoria":"badge-istruttoria"}.get(esito,"")
     return f'<span class="badge {cls}">{esito}</span>'
 
 def get_rec(id_, db):
@@ -343,6 +344,7 @@ if st.session_state.page == "Dashboard":
         archiviati_df = df_all[df_all['Stato'] == 'Archiviato']
         da_assegnare  = attivi_df[attivi_df['Operatore'].isin(['Da assegnare', '', None])] if not attivi_df.empty else pd.DataFrame()
         da_approvare  = attivi_df[attivi_df['Stato_workflow'] == 'elaborato'] if not attivi_df.empty else pd.DataFrame()
+        da_istruttoria = attivi_df[attivi_df['Esito'] == 'In istruttoria'] if not attivi_df.empty else pd.DataFrame()
         accolti_df    = df_all[df_all['Esito'] == 'Accolto']
         rigettati_df  = df_all[df_all['Esito'] == 'Rigettato']
         n_attivi      = len(attivi_df)
@@ -461,6 +463,56 @@ if st.session_state.page == "Dashboard":
                     st.session_state.page = "Dettaglio pratica"
                     st.rerun()
     
+        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+
+        # ══ TASK 4: SUPPLEMENTO ISTRUTTORIO ══
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Supplemento istruttorio</span>'
+            f'<span style="background:#92400e;color:white;font-family:Inter,sans-serif;font-size:12px;'
+            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'align-items:center;justify-content:center;">{len(da_istruttoria)}</span></div>',
+            unsafe_allow_html=True)
+
+        if da_istruttoria.empty:
+            st.info("Nessuna pratica in supplemento istruttorio.")
+        else:
+            labels_istr = [
+                f"{r['ID']}  ·  {r['Cliente']}  ·  {r.get('Note','') or 'nessuna nota'}"
+                for _, r in da_istruttoria.iterrows()
+            ]
+            istr_label = st.selectbox("Pratica in istruttoria", labels_istr, label_visibility="visible")
+            istr_id    = da_istruttoria.iloc[labels_istr.index(istr_label)]["ID"]
+            istr_note  = da_istruttoria.iloc[labels_istr.index(istr_label)].get("Note", "") or ""
+
+            if istr_note:
+                st.markdown(
+                    f'<div style="background:#fef3c7;border-radius:8px;padding:10px 16px;margin:8px 0;">'
+                    f'<p style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
+                    f'color:#92400e;text-transform:uppercase;letter-spacing:.08em;margin:0 0 4px 0;">'
+                    f'Supplemento richiesto</p>'
+                    f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#78350f;margin:0;">'
+                    f'{istr_note}</p></div>',
+                    unsafe_allow_html=True)
+
+            destinatario = st.text_input("Destinatario / Unità competente",
+                placeholder="es. Ufficio tassi, Ufficio titoli, Compliance...",
+                key=f"dest_istr_{istr_id}")
+
+            _, btn_istr = st.columns([4, 1])
+            with btn_istr:
+                if st.button("Invia supplemento", use_container_width=True,
+                             key="invia_istr", type="primary"):
+                    if destinatario:
+                        sb_update(istr_id, {"esito": "In istruttoria",
+                                            "stato_workflow": "istruttoria_inviata"})
+                        get_db.clear()
+                        st.toast(f"Supplemento inviato a: {destinatario}")
+                        st.rerun()
+                    else:
+                        st.warning("Inserire il destinatario prima di inviare.")
+
         st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
 
         # ══ STATISTICHE (in fondo) ══
@@ -949,9 +1001,10 @@ elif st.session_state.page == "Dettaglio pratica":
             # Invia al responsabile — sempre attivo
             if st.button("Invia al responsabile", key=f"resp_{rec['ID']}",
                          use_container_width=True):
+                esito_resp = "In istruttoria" if proposta_sel == "Supplemento istruttorio" else "Al responsabile"
                 sb_update(rec["ID"], {
                     "stato_workflow": "elaborato",
-                    "esito": "Al responsabile",
+                    "esito": esito_resp,
                     "note": note_val,
                     "proposta_decisione": proposta_sel,
                     "bozza_modificata": bozza_mod
