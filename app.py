@@ -766,39 +766,39 @@ elif st.session_state.page == "Dettaglio pratica":
             else:
                 st.warning("⏳ Elaborazione in corso. La sintesi sarà disponibile a breve.")
 
-            # Reclamo integrale — card scura cliccabile con CSS scoped
+            # Reclamo integrale — card HTML con bottone trasparente sovrapposto
+            rec_key = f"reclamo_int_{rec['ID']}"
             st.markdown(
-                '<style>'
-                '#reclamo-card-wrap button {'
-                'background:#1e293b !important; color:white !important;'
-                'border:none !important; border-radius:10px !important;'
-                'padding:0 !important; width:100% !important;'
-                'min-height:80px !important; cursor:pointer !important;}'
-                '#reclamo-card-wrap button:hover'
-                '{background:#2d3f55 !important;}'
-                '#reclamo-card-wrap button p'
-                '{display:none !important;}'
-                '</style>'
-                '<div id="reclamo-card-wrap">',
+                f'<style>'
+                f'div[data-testid="element-container"]:has(button[kind="secondary"])'
+                f'.reclamo-wrap {{ position:relative; margin-top:12px; }}'
+                f'</style>'
+                f'<div class="reclamo-wrap" style="position:relative;margin-top:12px;">'
+                f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
+                f'display:flex;align-items:center;justify-content:space-between;">'
+                f'<div>'
+                f'<div style="font-family:Playfair Display,serif;font-size:16px;'
+                f'color:#fff;font-weight:700;">Reclamo integrale</div>'
+                f'<div style="font-family:Inter,sans-serif;font-size:12px;'
+                f'color:#94a3b8;margin-top:4px;">Documento PDF</div>'
+                f'</div>'
+                f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
+                f'</div>'
+                f'</div>',
                 unsafe_allow_html=True)
-            # Card HTML visibile dentro il wrapper
+            # Bottone invisibile sovrapposto via CSS negativo
             st.markdown(
-                '<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
-                'display:flex;align-items:center;justify-content:space-between;'
-                'margin-top:12px;pointer-events:none;">'
-                '<div>'
-                '<div style="font-family:Playfair Display,serif;font-size:16px;'
-                'color:#fff;font-weight:700;">Reclamo integrale</div>'
-                '<div style="font-family:Inter,sans-serif;font-size:12px;'
-                'color:#94a3b8;margin-top:4px;">Documento PDF</div>'
-                '</div>'
-                '<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
-                '</div>',
+                f'<style>'
+                f'div[data-testid="stButton"]:has(button#{rec_key}) {{'
+                f'  position:relative; margin-top:-74px; z-index:10; opacity:0; height:74px;'
+                f'}}'
+                f'div[data-testid="stButton"]:has(button#{rec_key}) button {{'
+                f'  height:74px !important; cursor:pointer !important;'
+                f'}}'
+                f'</style>',
                 unsafe_allow_html=True)
-            if st.button(".", key=f"reclamo_int_{rec['ID']}",
-                         use_container_width=True):
+            if st.button("Reclamo integrale", key=rec_key, use_container_width=True):
                 st.toast("Visualizzazione PDF disponibile nella versione completa")
-            st.markdown('</div>', unsafe_allow_html=True)
 
             # Divisore
             st.markdown(
