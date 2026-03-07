@@ -827,14 +827,15 @@ elif st.session_state.page == "Dettaglio pratica":
 
         # ══ VALUTAZIONI DELL'OPERATORE ══
         st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)
-        st.markdown("""
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
-            <div style="flex:1;height:1px;background:#cbd5e1;"></div>
-            <span style="font-family:Playfair Display,serif;font-size:13px;font-weight:700;
-            text-transform:uppercase;letter-spacing:.18em;color:#94a3b8;white-space:nowrap;">
-            Valutazioni dell'Operatore</span>
-            <div style="flex:1;height:1px;background:#cbd5e1;"></div>
-        </div>""", unsafe_allow_html=True)
+        st.markdown(
+            '<div style="height:3px;background:linear-gradient(90deg,#3B82F6,#1e293b);'
+            'border-radius:2px;margin-bottom:20px;"></div>',
+            unsafe_allow_html=True)
+        st.markdown(
+            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:20px;">'
+            'Valutazioni dell\'Operatore</p>',
+            unsafe_allow_html=True)
 
         col_val, col_act = st.columns([2, 1], gap="large")
 
@@ -864,11 +865,20 @@ elif st.session_state.page == "Dettaglio pratica":
                 'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 4px 0;">'
                 'Bozza risposta modificata &nbsp;'
                 '<span style="font-weight:400;color:#94a3b8;">'
-                '(compilare solo se modificata rispetto alla bozza Resolva)</span></p>',
+                '(caricare solo se modificata rispetto alla bozza Resolva)</span></p>',
                 unsafe_allow_html=True)
-            bozza_mod = st.text_area("Bozza", value=rec.get("Bozza_modificata", ""), height=130,
-                key=f"bozza_{rec['ID']}", label_visibility="collapsed",
-                placeholder="Incollare qui la risposta modificata...")
+            bozza_mod = rec.get("Bozza_modificata", "")
+            uploaded = st.file_uploader("Carica bozza modificata", type=["docx","pdf"],
+                key=f"upload_{rec['ID']}", label_visibility="collapsed")
+            if uploaded is not None:
+                bozza_mod = f"[file caricato: {uploaded.name}]"
+                st.markdown(
+                    f'<div style="background:#e2e8f0;border-radius:8px;padding:10px 14px;margin-top:6px;">'
+                    f'<p style="font-family:Inter,sans-serif;font-size:12px;color:#1e293b;margin:0;">'
+                    f'📎 <strong>{uploaded.name}</strong> &nbsp;·&nbsp; '
+                    f'<span style="color:#64748b;">{round(uploaded.size/1024,1)} KB</span></p>'
+                    f'</div>',
+                    unsafe_allow_html=True)
 
         with col_act:
             st.markdown(
@@ -891,6 +901,22 @@ elif st.session_state.page == "Dettaglio pratica":
 
             st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
+            # Invia al responsabile — sempre attivo
+            if st.button("Invia al responsabile", key=f"resp_{rec['ID']}",
+                         use_container_width=True):
+                sb_update(rec["ID"], {
+                    "stato_workflow": "elaborato",
+                    "note": note_val,
+                    "proposta_decisione": proposta_sel if proposta_sel != "— nessuna proposta —" else "",
+                    "bozza_modificata": bozza_mod
+                })
+                get_db.clear()
+                st.success("✅ Pratica inviata al responsabile.")
+                st.rerun()
+
+            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+
+            # Invia risposta — attivo solo se valore < soglia
             if valore_pratica < soglia:
                 if st.button("Invia risposta", key=f"invia_{rec['ID']}",
                              use_container_width=True, type="primary"):
@@ -907,23 +933,13 @@ elif st.session_state.page == "Dettaglio pratica":
                     get_db.clear()
                     st.success("✅ Risposta inviata. Pratica archiviata.")
                     st.rerun()
-                st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-
-            if st.button("Invia al responsabile", key=f"resp_{rec['ID']}",
-                         use_container_width=True):
-                sb_update(rec["ID"], {
-                    "stato_workflow": "elaborato",
-                    "note": note_val,
-                    "proposta_decisione": proposta_sel if proposta_sel != "— nessuna proposta —" else "",
-                    "bozza_modificata": bozza_mod
-                })
-                get_db.clear()
-                st.success("✅ Pratica inviata al responsabile.")
-                st.rerun()
-
-            if valore_pratica >= soglia:
+            else:
                 st.markdown(
+                    '<div style="background:#fef3c7;border-radius:8px;padding:10px 14px;'
+                    'margin-top:2px;">'
                     '<p style="font-family:Inter,sans-serif;font-size:11px;'
-                    'color:#f59e0b;margin-top:10px;">'
-                    '⚠️ Valore ≥ €1.000<br>Approvazione responsabile richiesta</p>',
+                    'color:#92400e;margin:0;line-height:1.5;">'
+                    '🔒 <strong>Invia risposta</strong><br>'
+                    'Valore ≥ €1.000 — richiede approvazione del responsabile</p>'
+                    '</div>',
                     unsafe_allow_html=True)
