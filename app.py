@@ -157,6 +157,7 @@ div[data-testid="stSidebar"] .stTextInput input {
 .sec-header.slate {}
 .sec-header.amber {}
 .sec-header.red {}
+.sec-header.blue .sec-title { color:#3B82F6; }
 .sec-icon { display:none; }
 .sec-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:700;
     text-transform:uppercase; letter-spacing:.18em; color:#1e293b; }
@@ -748,19 +749,33 @@ elif st.session_state.page == "Dettaglio pratica":
         wf = rec.get("Stato_workflow", "in_elaborazione")
 
         with col_main:
-            sec("", "Analisi del reclamo")
-            if wf == "elaborato" and rec.get("Sintesi_AI"):
-                import re
-                sintesi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', rec["Sintesi_AI"])
+            import re
+
+            # ── BOX 1: SINTESI DEL RECLAMO ──
+            sec("", "Sintesi del reclamo")
+            sintesi_src = rec.get("Sintesi_reclamo") or rec.get("Sintesi_AI") or ""
+            if wf == "elaborato" and sintesi_src:
+                sintesi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', sintesi_src)
                 sintesi_html = re.sub(r'\*(.+?)\*', r'<strong>\1</strong>', sintesi_html)
                 st.markdown(f'<div class="ai-summary">{sintesi_html}</div>', unsafe_allow_html=True)
             else:
-                st.warning("⏳ Elaborazione in corso. L'analisi sarà disponibile a breve.")
-            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+                st.warning("⏳ Elaborazione in corso. La sintesi sarà disponibile a breve.")
 
-            sec("", "Analisi Resolva", "green")
+            # Apri reclamo originale
+            if rec.get("Testo_reclamo"):
+                with st.expander("📄 Apri reclamo originale"):
+                    st.markdown(
+                        f'<div style="font-family:Inter,sans-serif;font-size:13px;'
+                        f'color:#475569;line-height:1.7;padding:8px 0;">'
+                        f'{rec["Testo_reclamo"]}</div>',
+                        unsafe_allow_html=True)
+
+            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+            # ── BOX 2 + 4: NOTA TECNICA + BOZZA DI RISPOSTA ──
+            sec("", "Documenti Resolva", "green")
             if wf == "elaborato":
-                pdf_link = rec.get("PDF_nota", "#")
+                pdf_link  = rec.get("PDF_nota",   "#")
                 docx_link = rec.get("DOCX_bozza", "#")
                 st.markdown(f'''
                 <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
@@ -781,17 +796,32 @@ elif st.session_state.page == "Dettaglio pratica":
                 </div>''', unsafe_allow_html=True)
             else:
                 st.info("I documenti saranno disponibili al termine dell'elaborazione.")
-            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-                    # ── Apri reclamo originale ──
-            if rec.get("Testo_reclamo"):
-                with st.expander("📄 Apri reclamo originale"):
-                    st.markdown(
-                        f'<div style="font-family:Inter,sans-serif;font-size:13px;'
-                        f'color:#475569;line-height:1.7;padding:8px 0;">'
-                        f'{rec["Testo_reclamo"]}</div>',
-                        unsafe_allow_html=True)
+            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
+            # ── BOX 3: SINTESI DELL'ANALISI ──
+            sec("", "Sintesi dell'analisi", "blue")
+            sintesi_analisi = rec.get("Sintesi_analisi") or ""
+            if wf == "elaborato" and sintesi_analisi:
+                analisi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', sintesi_analisi)
+                analisi_html = re.sub(r'\*(.+?)\*', r'<strong>\1</strong>', analisi_html)
+                st.markdown(
+                    f'<div class="ai-summary" style="border-left:3px solid #3B82F6;">' +
+                    analisi_html + '</div>', unsafe_allow_html=True)
+            elif wf == "elaborato":
+                # Fallback: mostra esito corrente se sintesi_analisi non ancora presente in DB
+                esito_attuale = rec.get("Esito", "")
+                badge_color = {"Accolto":"#d1fae5","Rigettato":"#fce7f3","In analisi":"#e2e8f0","Draft":"#1e293b"}.get(esito_attuale, "#e2e8f0")
+                badge_text  = {"Accolto":"#065f46","Rigettato":"#9d174d","In analisi":"#475569","Draft":"#ffffff"}.get(esito_attuale, "#475569")
+                st.markdown(
+                    f'<div class="ai-summary" style="border-left:3px solid #3B82F6;">' +
+                    f'<span style="background:{badge_color};color:{badge_text};font-family:Inter,sans-serif;' +
+                    f'font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">{esito_attuale}</span>' +
+                    f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#64748b;margin:10px 0 0 0;">' +
+                    f'La sintesi dell\'analisi sarà disponibile dopo la configurazione del campo su Supabase.</p></div>',
+                    unsafe_allow_html=True)
+            else:
+                st.info("La sintesi dell'analisi sarà disponibile al termine dell'elaborazione.")
         with col_side:
             sec("⚙️", "Stato del flusso")
             steps = ([("✅","step-done","Reclamo ricevuto",rec['Data']),
