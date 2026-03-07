@@ -252,7 +252,8 @@ OPERATORI = ["M. Rossi", "E. Verdi", "F. Bruno", "C. Marino"]
 
 def badge(esito):
     cls = {"In analisi":"badge-analisi","Draft":"badge-draft",
-           "Rigettato":"badge-rigettato","Accolto":"badge-accolto"}.get(esito,"")
+           "Rigettato":"badge-rigettato","Accolto":"badge-accolto",
+           "Al responsabile":"badge-responsabile"}.get(esito,"")
     return f'<span class="badge {cls}">{esito}</span>'
 
 def get_rec(id_, db):
@@ -726,10 +727,14 @@ elif st.session_state.page == "Dettaglio pratica":
     rec = get_rec(st.session_state.get("id_selezionato",""), db)
     if not rec:
         st.error("Pratica non trovata.")
-        if st.button("← Torna alla lista"):
+        st.markdown(
+            '<a style="font-family:Inter,sans-serif;font-size:13px;color:#64748b;'
+            'text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">',
+            unsafe_allow_html=True)
+        if st.button("← Reclami attivi"):
             st.session_state.page = "Reclami attivi"; st.rerun()
     else:
-        if st.button("← Torna alla lista"):
+        if st.button("← Reclami attivi"):
             st.session_state.page = "Reclami attivi"; st.rerun()
 
         stato_cls = "status-attivo" if rec["Stato"] == "Attivo" else "status-archiviato"
@@ -751,7 +756,7 @@ elif st.session_state.page == "Dettaglio pratica":
         with col_main:
             import re
 
-            # ── BOX 1: SINTESI DEL RECLAMO ──
+            # ── SINTESI DEL RECLAMO ──
             sec("", "Sintesi del reclamo")
             sintesi_src = rec.get("Sintesi_reclamo") or rec.get("Sintesi_AI") or ""
             if wf == "elaborato" and sintesi_src:
@@ -761,67 +766,89 @@ elif st.session_state.page == "Dettaglio pratica":
             else:
                 st.warning("⏳ Elaborazione in corso. La sintesi sarà disponibile a breve.")
 
-            # Apri reclamo originale
-            if rec.get("Testo_reclamo"):
-                with st.expander("📄 Apri reclamo originale"):
+            # Reclamo integrale — stessa card scura degli altri documenti
+            testo = rec.get("Testo_reclamo", "") or ""
+            st.markdown(
+                f'<div style="margin-top:12px;">' +
+                (f'<a href="#" onclick="return false;" style="display:flex;align-items:center;' +
+                 f'justify-content:space-between;background:#1e293b;border-radius:10px;' +
+                 f'padding:18px 24px;text-decoration:none;cursor:pointer;">' +
+                 f'<div><div style="font-family:Playfair Display,serif;font-size:16px;' +
+                 f'color:#fff;font-weight:700;">Reclamo integrale</div>' +
+                 f'<div style="font-family:Inter,sans-serif;font-size:12px;' +
+                 f'color:#94a3b8;margin-top:4px;">Testo originale del reclamo</div></div>' +
+                 f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span></a>' if testo else
+                 f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;' +
+                 f'opacity:0.4;"><div style="font-family:Playfair Display,serif;font-size:16px;' +
+                 f'color:#fff;font-weight:700;">Reclamo integrale</div>' +
+                 f'<div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;' +
+                 f'margin-top:4px;">Testo non disponibile</div></div>') +
+                f'</div>',
+                unsafe_allow_html=True)
+            if testo:
+                with st.expander("", expanded=False):
                     st.markdown(
-                        f'<div style="font-family:Inter,sans-serif;font-size:13px;'
-                        f'color:#475569;line-height:1.7;padding:8px 0;">'
-                        f'{rec["Testo_reclamo"]}</div>',
+                        f'<div style="font-family:Inter,sans-serif;font-size:13px;' +
+                        f'color:#475569;line-height:1.7;">{testo}</div>',
                         unsafe_allow_html=True)
 
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+            # Divisore
+            st.markdown(
+                '<div style="height:2px;background:linear-gradient(90deg,#3B82F6,#1e293b);' +
+                'border-radius:2px;margin:24px 0;"></div>',
+                unsafe_allow_html=True)
 
-            # ── BOX 2 + 4: NOTA TECNICA + BOZZA DI RISPOSTA ──
-            sec("", "Documenti Resolva", "green")
+            # ── ANALISI RESOLVA ──
+            sec("", "Analisi Resolva")
+
+            # Sintesi dell'analisi — primo elemento, stesso stile titolo sezione
+            sintesi_analisi = rec.get("Sintesi_analisi") or ""
             if wf == "elaborato":
+                if sintesi_analisi:
+                    analisi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', sintesi_analisi)
+                    analisi_html = re.sub(r'\*(.+?)\*', r'<strong>\1</strong>', analisi_html)
+                    st.markdown(f'<div class="ai-summary">{analisi_html}</div>', unsafe_allow_html=True)
+                else:
+                    esito_attuale = rec.get("Esito", "")
+                    badge_color = {"Accolto":"#d1fae5","Rigettato":"#fce7f3",
+                                   "In analisi":"#e2e8f0","Draft":"#e2e8f0"}.get(esito_attuale,"#e2e8f0")
+                    badge_txt   = {"Accolto":"#065f46","Rigettato":"#9d174d",
+                                   "In analisi":"#475569","Draft":"#475569"}.get(esito_attuale,"#475569")
+                    st.markdown(
+                        f'<div class="ai-summary">' +
+                        (f'<span style="background:{badge_color};color:{badge_txt};' +
+                         f'font-family:Inter,sans-serif;font-size:11px;font-weight:700;' +
+                         f'padding:3px 10px;border-radius:20px;">{esito_attuale}</span>' if esito_attuale else "") +
+                        f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#94a3b8;' +
+                        f'margin:8px 0 0 0;">Sintesi analisi disponibile dopo configurazione Supabase.</p>' +
+                        f'</div>',
+                        unsafe_allow_html=True)
+
+                # Nota Tecnica + Bozza di Risposta
                 pdf_link  = rec.get("PDF_nota",   "#")
                 docx_link = rec.get("DOCX_bozza", "#")
-                st.markdown(f'''
-                <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
-                    <a href="{pdf_link}" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:#1e293b;border-radius:10px;padding:18px 24px;text-decoration:none;">
-                        <div>
-                            <div style="font-family:Playfair Display,serif;font-size:16px;color:#fff;font-weight:700;">Nota Tecnica</div>
-                            <div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;margin-top:4px;">Parere giuridico · Riferimenti normativi · Decisioni ABF</div>
-                        </div>
-                        <span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span>
-                    </a>
-                    <a href="{docx_link}" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:#1e293b;border-radius:10px;padding:18px 24px;text-decoration:none;">
-                        <div>
-                            <div style="font-family:Playfair Display,serif;font-size:16px;color:#fff;font-weight:700;">Bozza di Risposta</div>
-                            <div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;margin-top:4px;">Documento editabile · Pronto per revisione e invio</div>
-                        </div>
-                        <span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span>
-                    </a>
-                </div>''', unsafe_allow_html=True)
-            else:
-                st.info("I documenti saranno disponibili al termine dell'elaborazione.")
-
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-
-            # ── BOX 3: SINTESI DELL'ANALISI ──
-            sec("", "Sintesi dell'analisi", "blue")
-            sintesi_analisi = rec.get("Sintesi_analisi") or ""
-            if wf == "elaborato" and sintesi_analisi:
-                analisi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', sintesi_analisi)
-                analisi_html = re.sub(r'\*(.+?)\*', r'<strong>\1</strong>', analisi_html)
                 st.markdown(
-                    f'<div class="ai-summary" style="border-left:3px solid #3B82F6;">' +
-                    analisi_html + '</div>', unsafe_allow_html=True)
-            elif wf == "elaborato":
-                # Fallback: mostra esito corrente se sintesi_analisi non ancora presente in DB
-                esito_attuale = rec.get("Esito", "")
-                badge_color = {"Accolto":"#d1fae5","Rigettato":"#fce7f3","In analisi":"#e2e8f0","Draft":"#1e293b"}.get(esito_attuale, "#e2e8f0")
-                badge_text  = {"Accolto":"#065f46","Rigettato":"#9d174d","In analisi":"#475569","Draft":"#ffffff"}.get(esito_attuale, "#475569")
-                st.markdown(
-                    f'<div class="ai-summary" style="border-left:3px solid #3B82F6;">' +
-                    f'<span style="background:{badge_color};color:{badge_text};font-family:Inter,sans-serif;' +
-                    f'font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">{esito_attuale}</span>' +
-                    f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#64748b;margin:10px 0 0 0;">' +
-                    f'La sintesi dell\'analisi sarà disponibile dopo la configurazione del campo su Supabase.</p></div>',
+                    f'<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">' +
+                    f'<a href="{pdf_link}" target="_blank" style="display:flex;align-items:center;' +
+                    f'justify-content:space-between;background:#1e293b;border-radius:10px;' +
+                    f'padding:18px 24px;text-decoration:none;">' +
+                    f'<div><div style="font-family:Playfair Display,serif;font-size:16px;' +
+                    f'color:#fff;font-weight:700;">Nota Tecnica</div>' +
+                    f'<div style="font-family:Inter,sans-serif;font-size:12px;' +
+                    f'color:#94a3b8;margin-top:4px;">Parere giuridico · Riferimenti normativi · Decisioni ABF</div>' +
+                    f'</div><span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span></a>' +
+                    f'<a href="{docx_link}" target="_blank" style="display:flex;align-items:center;' +
+                    f'justify-content:space-between;background:#1e293b;border-radius:10px;' +
+                    f'padding:18px 24px;text-decoration:none;">' +
+                    f'<div><div style="font-family:Playfair Display,serif;font-size:16px;' +
+                    f'color:#fff;font-weight:700;">Bozza di Risposta</div>' +
+                    f'<div style="font-family:Inter,sans-serif;font-size:12px;' +
+                    f'color:#94a3b8;margin-top:4px;">Documento editabile · Pronto per revisione e invio</div>' +
+                    f'</div><span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span></a>' +
+                    f'</div>',
                     unsafe_allow_html=True)
             else:
-                st.info("La sintesi dell'analisi sarà disponibile al termine dell'elaborazione.")
+                st.info("I documenti saranno disponibili al termine dell'elaborazione.")
         with col_side:
             sec("⚙️", "Stato del flusso")
             steps = ([("✅","step-done","Reclamo ricevuto",rec['Data']),
@@ -936,6 +963,7 @@ elif st.session_state.page == "Dettaglio pratica":
                          use_container_width=True):
                 sb_update(rec["ID"], {
                     "stato_workflow": "elaborato",
+                    "esito": "Al responsabile",
                     "note": note_val,
                     "proposta_decisione": proposta_sel if proposta_sel != "— nessuna proposta —" else "",
                     "bozza_modificata": bozza_mod
