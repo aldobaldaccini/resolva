@@ -45,7 +45,12 @@ def db_to_rec(row):
         "Stato_workflow": row.get("stato_workflow") or "in_elaborazione",
         "PDF_nota":       row.get("pdf_nota") or "",
         "DOCX_bozza":     row.get("docx_bozza") or "",
-        "PDF_reclamo":    row.get("pdf_reclamo") or "",
+        "PDF_reclamo":       row.get("pdf_reclamo") or "",
+        "Testo_reclamo":     row.get("testo_reclamo") or "",
+        "Proposta_decisione":row.get("proposta_decisione") or "",
+        "Bozza_modificata":  row.get("bozza_modificata") or "",
+        "Sintesi_reclamo":   row.get("sintesi_reclamo") or "",
+        "Sintesi_analisi":   row.get("sintesi_analisi") or "",
     }
 
 def rec_to_db(rec: dict):
@@ -343,7 +348,7 @@ if st.session_state.page == "Dashboard":
         attivi_df     = df_all[df_all['Stato'] == 'Attivo']
         archiviati_df = df_all[df_all['Stato'] == 'Archiviato']
         da_assegnare  = attivi_df[attivi_df['Operatore'].isin(['Da assegnare', '', None])] if not attivi_df.empty else pd.DataFrame()
-        da_approvare  = attivi_df[attivi_df['Stato_workflow'] == 'elaborato'] if not attivi_df.empty else pd.DataFrame()
+        da_approvare  = attivi_df[attivi_df['Esito'] == 'Al responsabile'] if not attivi_df.empty else pd.DataFrame()
         da_istruttoria = attivi_df[attivi_df['Esito'] == 'In istruttoria'] if not attivi_df.empty else pd.DataFrame()
         accolti_df    = df_all[df_all['Esito'] == 'Accolto']
         rigettati_df  = df_all[df_all['Esito'] == 'Rigettato']
@@ -1015,8 +1020,11 @@ elif st.session_state.page == "Dettaglio pratica":
 
             st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
 
-            # Invia risposta — attivo solo se valore < soglia
-            if valore_pratica < soglia:
+            # Invia risposta — responsabile sempre, operatore solo se < soglia
+            ruolo_corrente = st.session_state.get("ruolo", "Operatore")
+            can_send = (ruolo_corrente == "Responsabile") or (valore_pratica < soglia)
+
+            if can_send:
                 if st.button("Invia risposta", key=f"invia_{rec['ID']}",
                              use_container_width=True, type="primary"):
                     esito_out = proposta_sel if proposta_sel in ["Accogliere","Rigettare"] else "Draft"
