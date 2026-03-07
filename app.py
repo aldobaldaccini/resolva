@@ -783,14 +783,14 @@ elif st.session_state.page == "Dettaglio pratica":
                 st.info("I documenti saranno disponibili al termine dell'elaborazione.")
             st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-            sec("", "Note operative", "amber")
-            note_val = st.text_area("Note", value=rec.get("Note",""), height=110,
-                key=f"note_{rec['ID']}", label_visibility="collapsed",
-                placeholder="Note interne non visibili al cliente...")
-            if st.button("💾 Salva note", key=f"save_note_{rec['ID']}"):
-                sb_update(rec["ID"], {"note": note_val})
-                get_db.clear()
-                st.success("Note salvate.")
+                    # ── Apri reclamo originale ──
+            if rec.get("Testo_reclamo"):
+                with st.expander("📄 Apri reclamo originale"):
+                    st.markdown(
+                        f'<div style="font-family:Inter,sans-serif;font-size:13px;'
+                        f'color:#475569;line-height:1.7;padding:8px 0;">'
+                        f'{rec["Testo_reclamo"]}</div>',
+                        unsafe_allow_html=True)
 
         with col_side:
             sec("⚙️", "Stato del flusso")
@@ -799,14 +799,14 @@ elif st.session_state.page == "Dettaglio pratica":
                       ("✅","step-done","Nota tecnica generata","oggi"),
                       ("✅","step-done","Bozza risposta generata","oggi"),
                       ("⏳","step-pending","Revisione operatore","in attesa"),
-                      ("🔒","step-wait","Invio al decisore finale","—")]
+                      ("🔒","step-wait","Invio al responsabile","—")]
                      if wf == "elaborato" else
                      [("✅","step-done","Reclamo ricevuto",rec['Data']),
                       ("⏳","step-pending","Analisi AI in corso","in corso..."),
-                      ("🔒","step-wait","Generazione nota tecnica","—"),
-                      ("🔒","step-wait","Generazione bozza risposta","—"),
+                      ("🔒","step-wait","Nota tecnica","—"),
+                      ("🔒","step-wait","Bozza risposta","—"),
                       ("🔒","step-wait","Revisione operatore","—"),
-                      ("🔒","step-wait","Invio al decisore finale","—")])
+                      ("🔒","step-wait","Invio al responsabile","—")])
             st.markdown(
                 '<div class="sec-body">' +
                 "".join(f'<div class="workflow-step"><div class="step-icon {cls}">{icon}</div>'
@@ -815,25 +815,115 @@ elif st.session_state.page == "Dettaglio pratica":
                         for icon, cls, label, date in steps) +
                 '</div>', unsafe_allow_html=True)
 
-            sec("👤", "Assegnazione", "slate")
-            idx_op = OPERATORI.index(rec["Assegnato_a"]) if rec["Assegnato_a"] in OPERATORI else 0
-            nuovo_op = st.selectbox("Operatore", OPERATORI, index=idx_op, key=f"op_{rec['ID']}")
-            if st.button("Aggiorna assegnazione", key=f"save_op_{rec['ID']}"):
-                sb_update(rec["ID"], {"assegnato_a": nuovo_op, "operatore": nuovo_op})
-                get_db.clear()
-                st.success(f"Assegnato a {nuovo_op}.")
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+            st.markdown(
+                f'<div style="background:#f1f5f9;border-radius:8px;padding:12px 16px;">'
+                f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                f'color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin:0 0 4px 0;">'
+                f'Assegnato a</p>'
+                f'<p style="font-family:Inter,sans-serif;font-size:14px;font-weight:600;'
+                f'color:#1e293b;margin:0;">{rec.get("Assegnato_a", "—")}</p>'
+                f'</div>', unsafe_allow_html=True)
 
-            if wf == "elaborato":
-                sec("⚖️", "Decisione finale", "red")
-                esiti = ["In analisi","Draft","Accolto","Rigettato"]
-                esito_corrente = rec.get("Esito","In analisi")
-                esito_idx = esiti.index(esito_corrente) if esito_corrente in esiti else 0
-                esito_sel = st.radio("Esito", esiti,
-                    index=esito_idx, key=f"esito_{rec['ID']}")
-                if st.button("📨 Invia al decisore finale", key=f"send_{rec['ID']}", type="primary"):
-                    nuovo_stato = "Archiviato" if esito_sel in ["Accolto","Rigettato"] else "Attivo"
-                    sb_update(rec["ID"], {"esito": esito_sel, "stato": nuovo_stato})
+        # ══ VALUTAZIONI DELL'OPERATORE ══
+        st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+            <div style="flex:1;height:1px;background:#cbd5e1;"></div>
+            <span style="font-family:Playfair Display,serif;font-size:13px;font-weight:700;
+            text-transform:uppercase;letter-spacing:.18em;color:#94a3b8;white-space:nowrap;">
+            Valutazioni dell'Operatore</span>
+            <div style="flex:1;height:1px;background:#cbd5e1;"></div>
+        </div>""", unsafe_allow_html=True)
+
+        col_val, col_act = st.columns([2, 1], gap="large")
+
+        with col_val:
+            st.markdown(
+                '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px 0;">'
+                'Proposta di decisione</p>', unsafe_allow_html=True)
+            proposte = ["— nessuna proposta —", "Accogliere", "Rigettare", "Supplemento istruttorio"]
+            proposta_corrente = rec.get("Proposta_decisione", "— nessuna proposta —")
+            proposta_idx = proposte.index(proposta_corrente) if proposta_corrente in proposte else 0
+            proposta_sel = st.radio("Proposta", proposte, index=proposta_idx,
+                key=f"proposta_{rec['ID']}", label_visibility="collapsed", horizontal=True)
+
+            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+            st.markdown(
+                '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 8px 0;">'
+                'Note operative</p>', unsafe_allow_html=True)
+            note_val = st.text_area("Note", value=rec.get("Note", ""), height=100,
+                key=f"note_{rec['ID']}", label_visibility="collapsed",
+                placeholder="Note interne, supplemento istruttorio richiesto, osservazioni...")
+
+            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+            st.markdown(
+                '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 4px 0;">'
+                'Bozza risposta modificata &nbsp;'
+                '<span style="font-weight:400;color:#94a3b8;">'
+                '(compilare solo se modificata rispetto alla bozza Resolva)</span></p>',
+                unsafe_allow_html=True)
+            bozza_mod = st.text_area("Bozza", value=rec.get("Bozza_modificata", ""), height=130,
+                key=f"bozza_{rec['ID']}", label_visibility="collapsed",
+                placeholder="Incollare qui la risposta modificata...")
+
+        with col_act:
+            st.markdown(
+                '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 16px 0;">'
+                'Azioni</p>', unsafe_allow_html=True)
+
+            valore_pratica = float(rec.get("Valore", 0) or 0)
+            soglia = 1000.0
+
+            if st.button("💾  Salva valutazioni", key=f"salva_val_{rec['ID']}",
+                         use_container_width=True):
+                sb_update(rec["ID"], {
+                    "note": note_val,
+                    "proposta_decisione": proposta_sel if proposta_sel != "— nessuna proposta —" else "",
+                    "bozza_modificata": bozza_mod
+                })
+                get_db.clear()
+                st.success("Valutazioni salvate.")
+
+            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+            if valore_pratica < soglia:
+                if st.button("Invia risposta", key=f"invia_{rec['ID']}",
+                             use_container_width=True, type="primary"):
+                    esito_out = proposta_sel if proposta_sel in ["Accogliere","Rigettare"] else "Draft"
+                    if esito_out == "Accogliere": esito_out = "Accolto"
+                    if esito_out == "Rigettare":  esito_out = "Rigettato"
+                    sb_update(rec["ID"], {
+                        "stato": "Archiviato",
+                        "esito": esito_out,
+                        "note": note_val,
+                        "proposta_decisione": proposta_sel,
+                        "bozza_modificata": bozza_mod
+                    })
                     get_db.clear()
-                    st.success("Pratica inviata al decisore.")
+                    st.success("✅ Risposta inviata. Pratica archiviata.")
                     st.rerun()
+                st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+
+            if st.button("Invia al responsabile", key=f"resp_{rec['ID']}",
+                         use_container_width=True):
+                sb_update(rec["ID"], {
+                    "stato_workflow": "elaborato",
+                    "note": note_val,
+                    "proposta_decisione": proposta_sel if proposta_sel != "— nessuna proposta —" else "",
+                    "bozza_modificata": bozza_mod
+                })
+                get_db.clear()
+                st.success("✅ Pratica inviata al responsabile.")
+                st.rerun()
+
+            if valore_pratica >= soglia:
+                st.markdown(
+                    '<p style="font-family:Inter,sans-serif;font-size:11px;'
+                    'color:#f59e0b;margin-top:10px;">'
+                    '⚠️ Valore ≥ €1.000<br>Approvazione responsabile richiesta</p>',
+                    unsafe_allow_html=True)
