@@ -766,24 +766,37 @@ elif st.session_state.page == "Dettaglio pratica":
             else:
                 st.warning("⏳ Elaborazione in corso. La sintesi sarà disponibile a breve.")
 
-            # Reclamo integrale — card scura cliccabile
-            st.markdown("""
-            <style>
-            div[data-testid="stButton"].reclamo-card > button {
-                background:#1e293b !important; color:white !important;
-                border:none !important; border-radius:10px !important;
-                padding:18px 24px !important; width:100% !important;
-                text-align:left !important; font-family:'Playfair Display',serif !important;
-                font-size:16px !important; font-weight:700 !important;
-                height:auto !important; line-height:1.4 !important;
-            }
-            div[data-testid="stButton"].reclamo-card > button:hover {
-                background:#2d3f55 !important;
-            }
-            </style>""", unsafe_allow_html=True)
-            st.markdown('<div class="reclamo-card">', unsafe_allow_html=True)
-            if st.button("Reclamo integrale\n\nDocumento PDF  →",
-                         key=f"reclamo_int_{rec['ID']}", use_container_width=True):
+            # Reclamo integrale — card scura cliccabile con CSS scoped
+            st.markdown(
+                '<style>'
+                '#reclamo-card-wrap button {'
+                'background:#1e293b !important; color:white !important;'
+                'border:none !important; border-radius:10px !important;'
+                'padding:0 !important; width:100% !important;'
+                'min-height:80px !important; cursor:pointer !important;}'
+                '#reclamo-card-wrap button:hover'
+                '{background:#2d3f55 !important;}'
+                '#reclamo-card-wrap button p'
+                '{display:none !important;}'
+                '</style>'
+                '<div id="reclamo-card-wrap">',
+                unsafe_allow_html=True)
+            # Card HTML visibile dentro il wrapper
+            st.markdown(
+                '<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
+                'display:flex;align-items:center;justify-content:space-between;'
+                'margin-top:12px;pointer-events:none;">'
+                '<div>'
+                '<div style="font-family:Playfair Display,serif;font-size:16px;'
+                'color:#fff;font-weight:700;">Reclamo integrale</div>'
+                '<div style="font-family:Inter,sans-serif;font-size:12px;'
+                'color:#94a3b8;margin-top:4px;">Documento PDF</div>'
+                '</div>'
+                '<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
+                '</div>',
+                unsafe_allow_html=True)
+            if st.button(".", key=f"reclamo_int_{rec['ID']}",
+                         use_container_width=True):
                 st.toast("Visualizzazione PDF disponibile nella versione completa")
             st.markdown('</div>', unsafe_allow_html=True)
 
