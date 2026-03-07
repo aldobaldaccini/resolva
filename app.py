@@ -766,28 +766,26 @@ elif st.session_state.page == "Dettaglio pratica":
             else:
                 st.warning("⏳ Elaborazione in corso. La sintesi sarà disponibile a breve.")
 
-            # Reclamo integrale — stessa card scura degli altri documenti
-            testo = rec.get("Testo_reclamo", "") or ""
-            st.markdown(
-                f'<div style="margin-top:12px;">' +
-                (f'<div style="display:flex;align-items:center;' +
-                 f'justify-content:space-between;background:#1e293b;border-radius:10px;' +
-                 f'padding:18px 24px;cursor:pointer;">' +
-                 f'<div><div style="font-family:Playfair Display,serif;font-size:16px;' +
-                 f'color:#fff;font-weight:700;">Reclamo integrale</div>' +
-                 f'<div style="font-family:Inter,sans-serif;font-size:12px;' +
-                 f'color:#94a3b8;margin-top:4px;">Documento PDF</div></div>' +
-                 f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span></div>' if testo else
-                 f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;' +
-                 f'opacity:0.4;"><div style="font-family:Playfair Display,serif;font-size:16px;' +
-                 f'color:#fff;font-weight:700;">Reclamo integrale</div>' +
-                 f'<div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;' +
-                 f'margin-top:4px;">Documento PDF</div></div>') +
-                f'</div>',
-                unsafe_allow_html=True)
-            if testo:
-                if st.button("Apri reclamo integrale", key=f"reclamo_int_{rec['ID']}"):
-                    st.toast("Visualizzazione PDF disponibile nella versione completa")
+            # Reclamo integrale — card scura cliccabile
+            st.markdown("""
+            <style>
+            div[data-testid="stButton"].reclamo-card > button {
+                background:#1e293b !important; color:white !important;
+                border:none !important; border-radius:10px !important;
+                padding:18px 24px !important; width:100% !important;
+                text-align:left !important; font-family:'Playfair Display',serif !important;
+                font-size:16px !important; font-weight:700 !important;
+                height:auto !important; line-height:1.4 !important;
+            }
+            div[data-testid="stButton"].reclamo-card > button:hover {
+                background:#2d3f55 !important;
+            }
+            </style>""", unsafe_allow_html=True)
+            st.markdown('<div class="reclamo-card">', unsafe_allow_html=True)
+            if st.button("Reclamo integrale\n\nDocumento PDF  →",
+                         key=f"reclamo_int_{rec['ID']}", use_container_width=True):
+                st.toast("Visualizzazione PDF disponibile nella versione completa")
+            st.markdown('</div>', unsafe_allow_html=True)
 
             # Divisore
             st.markdown(
@@ -990,11 +988,10 @@ elif st.session_state.page == "Dettaglio pratica":
                     st.rerun()
             else:
                 st.markdown(
-                    '<div style="background:#fef3c7;border-radius:8px;padding:10px 14px;'
+                    '<div style="background:#e2e8f0;border-radius:8px;padding:10px 14px;'
                     'margin-top:2px;">'
                     '<p style="font-family:Inter,sans-serif;font-size:11px;'
-                    'color:#92400e;margin:0;line-height:1.5;">'
-                    '🔒 <strong>Invia risposta</strong><br>'
-                    'Valore ≥ €1.000 — richiede approvazione del responsabile</p>'
+                    'color:#475569;margin:0;">'
+                    'Invio risposta disattivato · Valore superiore a € 1.000</p>'
                     '</div>',
                     unsafe_allow_html=True)
