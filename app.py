@@ -371,6 +371,13 @@ if st.session_state.page == "Dashboard":
         .btn-red button { background:#dc2626 !important; color:white !important;
             border:none !important; font-weight:600 !important; }
         .btn-red button:hover { background:#b91c1c !important; }
+        /* hover azzurro sui titoli sezione */
+        .sec-title { transition: color .2s; cursor: default; }
+        .sec-title:hover { color: #3B82F6 !important; }
+        /* hover azzurro sulle card statistiche */
+        .kpi-card { transition: box-shadow .2s, transform .15s; }
+        .kpi-card:hover { box-shadow: 0 4px 16px rgba(59,130,246,.2) !important;
+            transform: translateY(-2px); }
         </style>""", unsafe_allow_html=True)
 
         # ══ TASK 1: SINCRONIZZA PEC ══
@@ -386,7 +393,7 @@ if st.session_state.page == "Dashboard":
         _, pec_btn = st.columns([4,1])
         with pec_btn:
             st.markdown('<div class="btn-red">', unsafe_allow_html=True)
-            if st.button("📡 Sincronizza", use_container_width=True):
+            if st.button("Sincronizza", use_container_width=True):
                 st.toast("Sincronizzazione PEC disponibile nella versione completa")
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -419,7 +426,7 @@ if st.session_state.page == "Dashboard":
             _, btn_ass = st.columns([4, 1])
             with btn_ass:
                 st.markdown('<div class="btn-red">', unsafe_allow_html=True)
-                if st.button("Assegna →", use_container_width=True, key="assegna_main"):
+                if st.button("Assegna", use_container_width=True, key="assegna_main"):
                     sb_update(pratica_id, {"operatore": op_scelto, "assegnato_a": op_scelto})
                     get_db.clear()
                     st.rerun()
@@ -450,7 +457,7 @@ if st.session_state.page == "Dashboard":
             _, btn_appr = st.columns([4, 1])
             with btn_appr:
                 st.markdown('<div class="btn-red">', unsafe_allow_html=True)
-                if st.button("Apri →", use_container_width=True, key="apri_appr"):
+                if st.button("Apri", use_container_width=True, key="apri_appr"):
                     st.session_state.id_selezionato = appr_id
                     st.session_state.page = "Dettaglio pratica"
                     st.rerun()
@@ -466,7 +473,7 @@ if st.session_state.page == "Dashboard":
 
         def kpi_exec(col, label, value, sub):
             col.markdown(
-                f'<div style="background:#e2e8f0;border-radius:10px;padding:20px 24px;">'
+                f'<div class="kpi-card" style="background:#e2e8f0;border-radius:10px;padding:20px 24px;">'
                 f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
                 f'color:#64748b;text-transform:uppercase;letter-spacing:.12em;margin:0 0 10px 0;">{label}</p>'
                 f'<p style="font-family:Playfair Display,serif;font-size:32px;font-weight:700;'
