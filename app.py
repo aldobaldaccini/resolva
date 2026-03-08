@@ -139,7 +139,7 @@ div[data-testid="stSidebar"] .stTextInput input {
 .pro-table tbody tr:last-child td { border-bottom:none; }
 .pro-table tbody tr:nth-child(even) td { background:#f8fafc; }
 .pro-table tbody tr:hover td { background:#eff6ff; transition:background .12s; }
-.pro-table-arch thead tr th { background:#6B1F3A !important; }
+.pro-table-arch thead tr th { background:#1e293b !important; }
 .pro-table-arch tbody tr:nth-child(even) td { background:#fdf2f5; }
 .pro-table-arch tbody tr:hover td { background:#fce7ef; transition:background .12s; }
 .col-id { font-weight:700; color:#0f172a; white-space:nowrap; }
@@ -892,22 +892,22 @@ elif st.session_state.page == "Dettaglio pratica":
                 if url and url != "#":
                     st.markdown(
                         f'<a href="{url}" target="_blank" style="text-decoration:none;color:inherit;">'
-                        f'<div style="background:#6B1F3A;border-radius:10px;padding:18px 24px;'
+                        f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
                         f'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
                         f'<div><div style="font-family:Playfair Display,serif;font-size:16px;'
                         f'color:#fff;font-weight:700;">{title}</div>'
                         f'<div style="font-family:Inter,sans-serif;font-size:12px;'
-                        f'color:#f0b8c8;margin-top:4px;">{sub}</div></div>'
+                        f'color:#94a3b8;margin-top:4px;">{sub}</div></div>'
                         f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
                         f'</div></a>', unsafe_allow_html=True)
                 else:
                     st.markdown(
-                        f'<div style="background:#6B1F3A;border-radius:10px;padding:18px 24px;'
+                        f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
                         f'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
                         f'<div><div style="font-family:Playfair Display,serif;font-size:16px;'
                         f'color:#fff;font-weight:700;">{title}</div>'
                         f'<div style="font-family:Inter,sans-serif;font-size:12px;'
-                        f'color:#f0b8c8;margin-top:4px;">{sub}</div></div>'
+                        f'color:#94a3b8;margin-top:4px;">{sub}</div></div>'
                         f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
                         f'</div>', unsafe_allow_html=True)
 
