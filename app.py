@@ -970,6 +970,13 @@ elif st.session_state.page == "Dettaglio pratica":
 
                 # Sintesi dell'analisi — primo elemento, stesso stile titolo sezione
                 sintesi_analisi = rec.get("Sintesi_analisi") or ""
+                if sintesi_analisi:
+                    for _label in ["Reclamo:","Valutazione:","Norma principale applicabile:","Orientamento ABF prevalente:","Esito suggerito:","Motivazione:"]:
+                        sintesi_analisi = sintesi_analisi.replace(_label, f"<strong>{_label}</strong>")
+                    import re as _re2
+                    for _term in ["Infondato","Fondato","Parzialmente fondato","Rigettare","Accogliere","Supplemento istruttorio","Strong Customer Authentication","colpa grave","onere della prova"]:
+                        sintesi_analisi = _re2.sub(rf"(?<![>\w]){_re2.escape(_term)}(?![\w<])", f"<strong>{_term}</strong>", sintesi_analisi)
+                    sintesi_analisi = sintesi_analisi.replace("\n", "<br>")
                 if wf == "elaborato":
                     if sintesi_analisi:
                         analisi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', sintesi_analisi)
@@ -986,8 +993,10 @@ elif st.session_state.page == "Dettaglio pratica":
                             (f'<span style="background:{badge_color};color:{badge_txt};' +
                              f'font-family:Inter,sans-serif;font-size:11px;font-weight:700;' +
                              f'padding:3px 10px;border-radius:20px;">{esito_attuale}</span>' if esito_attuale else "") +
-                            f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#94a3b8;' +
-                            f'margin:8px 0 0 0;">Sintesi analisi disponibile dopo configurazione Supabase.</p>' +
+                            + (f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#475569;margin:8px 0 0 0;">'
+                               f'{sintesi_an}</p>' if sintesi_an else
+                               f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#94a3b8;margin:8px 0 0 0;">'  
+                               f'Elaborazione in corso...</p>') +
                             f'</div>',
                             unsafe_allow_html=True)
 
