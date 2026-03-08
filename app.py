@@ -46,11 +46,10 @@ def db_to_rec(row):
         "PDF_nota":       row.get("pdf_nota") or "",
         "DOCX_bozza":     row.get("docx_bozza") or "",
         "PDF_reclamo":       row.get("pdf_reclamo") or "",
-        "Testo_reclamo":     row.get("testo_reclamo") or "",
-        "Proposta_decisione":row.get("proposta_decisione") or "",
-        "Bozza_modificata":  row.get("bozza_modificata") or "",
         "Sintesi_reclamo":   row.get("sintesi_reclamo") or "",
         "Sintesi_analisi":   row.get("sintesi_analisi") or "",
+        "Proposta_decisione":row.get("proposta_decisione") or "",
+        "Bozza_modificata":  row.get("bozza_modificata") or "",
     }
 
 def rec_to_db(rec: dict):
@@ -143,6 +142,7 @@ div[data-testid="stSidebar"] .stTextInput input {
 .col-val { white-space:nowrap; font-variant-numeric:tabular-nums; }
 .badge { display:inline-block; padding:4px 11px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; }
 .badge-accolto   { background:#dcfce7; color:#15803d; }
+.badge-istruttoria { background:#fef3c7; color:#92400e; }
 .badge-istruttoria { background:#fef3c7; color:#92400e; }
 .badge-rigettato { background:#fee2e2; color:#b91c1c; }
 .badge-analisi   { background:#e2e8f0; color:#475569; }
@@ -527,211 +527,104 @@ if st.session_state.page == "Dashboard":
             'Statistiche operative</p>', unsafe_allow_html=True)
 
         from datetime import datetime, timedelta
-        import pandas as pd
 
-        oggi = datetime.now().date()
-        filtri = {"Oggi": oggi, "Settimana": oggi - timedelta(days=7),
-                  "Mese": oggi - timedelta(days=30), "Anno": oggi - timedelta(days=365)}
+        oggi    = datetime.now().date()
+        filtri  = {"Oggi": oggi, "Settimana": oggi-timedelta(days=7),
+                   "Mese": oggi-timedelta(days=30), "Anno": oggi-timedelta(days=365)}
         periodo_sel = st.selectbox("Periodo", list(filtri.keys()),
                                    key="periodo_stats", label_visibility="visible")
         data_da = filtri[periodo_sel]
 
         def parse_data(d):
-            try:
-                # Try DD/MM/YY format used in app
-                return datetime.strptime(str(d), "%d/%m/%y").date()
+            try:    return datetime.strptime(str(d), "%d/%m/%y").date()
             except:
-                try:
-                    return datetime.strptime(str(d)[:10], "%Y-%m-%d").date()
-                except:
-                    return None
+                try: return datetime.strptime(str(d)[:10], "%Y-%m-%d").date()
+                except: return None
 
-        if not df_all.empty:
-            df_all["_data"] = df_all["Data"].apply(parse_data)
-            df_periodo = df_all[df_all["_data"] >= data_da] if not df_all.empty else pd.DataFrame()
-        else:
-            df_periodo = pd.DataFrame()
+        df_all["_data"]  = df_all["Data"].apply(parse_data) if not df_all.empty else None
+        df_periodo       = df_all[df_all["_data"] >= data_da] if not df_all.empty else pd.DataFrame()
+        arch_periodo     = df_periodo[df_periodo["Stato"] == "Archiviato"] if not df_periodo.empty else pd.DataFrame()
+        attivi_periodo   = df_periodo[df_periodo["Stato"] == "Attivo"]     if not df_periodo.empty else pd.DataFrame()
+        arch_da_op       = arch_periodo[arch_periodo["Valore"].apply(lambda v: float(v or 0) < 1000)]  if not arch_periodo.empty else pd.DataFrame()
+        arch_da_resp     = arch_periodo[arch_periodo["Valore"].apply(lambda v: float(v or 0) >= 1000)] if not arch_periodo.empty else pd.DataFrame()
+        arch_accolti     = arch_periodo[arch_periodo["Esito"] == "Accolto"]  if not arch_periodo.empty else pd.DataFrame()
+        arch_rigettati   = arch_periodo[arch_periodo["Esito"] == "Rigettato"] if not arch_periodo.empty else pd.DataFrame()
+        tot_chiusi       = max(len(arch_accolti) + len(arch_rigettati), 1)
+        tasso_acc_p      = int(len(arch_accolti)   / tot_chiusi * 100)
+        tasso_rig_p      = int(len(arch_rigettati) / tot_chiusi * 100)
+        val_accolti      = int(arch_accolti["Valore"].sum())   if not arch_accolti.empty else 0
+        val_rigettati    = int(arch_rigettati["Valore"].sum()) if not arch_rigettati.empty else 0
+        n_da_ass  = len(attivi_periodo[attivi_periodo["Operatore"].isin(["Da assegnare","",None])]) if not attivi_periodo.empty else 0
+        n_ass     = len(attivi_periodo[~attivi_periodo["Operatore"].isin(["Da assegnare","",None])]) if not attivi_periodo.empty else 0
+        n_da_appr = len(attivi_periodo[attivi_periodo["Esito"] == "Al responsabile"]) if not attivi_periodo.empty else 0
+        n_istr    = len(attivi_periodo[attivi_periodo["Esito"] == "In istruttoria"])  if not attivi_periodo.empty else 0
 
-        arch_periodo  = df_periodo[df_periodo["Stato"] == "Archiviato"] if not df_periodo.empty else pd.DataFrame()
-        attivi_periodo = df_periodo[df_periodo["Stato"] == "Attivo"]    if not df_periodo.empty else pd.DataFrame()
-
-        # Breakdown archiviati: operatore vs responsabile
-        # operatore = valore < 1000, responsabile = valore >= 1000
-        arch_da_op   = arch_periodo[arch_periodo["Valore"].apply(lambda v: float(v or 0) < 1000)]  if not arch_periodo.empty else pd.DataFrame()
-        arch_da_resp = arch_periodo[arch_periodo["Valore"].apply(lambda v: float(v or 0) >= 1000)] if not arch_periodo.empty else pd.DataFrame()
-        arch_accolti  = arch_periodo[arch_periodo["Esito"] == "Accolto"]   if not arch_periodo.empty else pd.DataFrame()
-        arch_rigettati= arch_periodo[arch_periodo["Esito"] == "Rigettato"] if not arch_periodo.empty else pd.DataFrame()
-        tot_chiusi = max(len(arch_accolti) + len(arch_rigettati), 1)
-        tasso_acc_p = int(len(arch_accolti)   / tot_chiusi * 100)
-        tasso_rig_p = int(len(arch_rigettati) / tot_chiusi * 100)
-        val_accolti  = int(arch_accolti["Valore"].sum())  if not arch_accolti.empty else 0
-        val_rigettati= int(arch_rigettati["Valore"].sum()) if not arch_rigettati.empty else 0
-
-        # KPI row 1 — attivi
-        st.markdown(
-            '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-            'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:8px 0 10px 0;">'
-            'Portafoglio attivo nel periodo</p>', unsafe_allow_html=True)
-        ka1,ka2,ka3,ka4 = st.columns(4)
-
-        def kpi_sm(col, label, value, sub=""):
+        def kpi_stat(col, label, value, sub, bg):
             col.markdown(
-                f'<div class="kpi-card" style="background:#e2e8f0;border-radius:10px;padding:16px 20px;">'
+                f'<div style="background:{bg};border-radius:10px;padding:16px 20px;'
+                f'box-shadow:0 1px 6px rgba(0,0,0,0.07);">'
                 f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
                 f'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px 0;">{label}</p>'
-                f'<p style="font-family:Playfair Display,serif;font-size:26px;font-weight:700;'
+                f'<p style="font-family:Playfair Display,serif;font-size:28px;font-weight:700;'
                 f'color:#1e293b;margin:0 0 2px 0;line-height:1;">{value}</p>'
                 f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#94a3b8;margin:0;">{sub}</p>'
                 f'</div>', unsafe_allow_html=True)
 
-        n_da_ass   = len(attivi_periodo[attivi_periodo["Operatore"].isin(["Da assegnare","",None])]) if not attivi_periodo.empty else 0
-        n_ass      = len(attivi_periodo[~attivi_periodo["Operatore"].isin(["Da assegnare","",None])]) if not attivi_periodo.empty else 0
-        n_da_appr  = len(attivi_periodo[attivi_periodo["Esito"] == "Al responsabile"]) if not attivi_periodo.empty else 0
-        n_istr     = len(attivi_periodo[attivi_periodo["Esito"] == "In istruttoria"]) if not attivi_periodo.empty else 0
-
-        kpi_sm(ka1, "Da assegnare",    n_da_ass,  "in attesa")
-        kpi_sm(ka2, "In lavorazione",  n_ass,     "assegnati")
-        kpi_sm(ka3, "Da approvare",    n_da_appr, "al responsabile")
-        kpi_sm(ka4, "In istruttoria",  n_istr,    "supplemento")
-
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-
-        # KPI row 2 — archiviati
-        st.markdown(
-            '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-            'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:12px 0 10px 0;">'
-            'Reclami archiviati nel periodo</p>', unsafe_allow_html=True)
-        kb1,kb2,kb3,kb4 = st.columns(4)
-        kpi_sm(kb1, "Da operatore",    len(arch_da_op),   "risposte inviate")
-        kpi_sm(kb2, "Da responsabile", len(arch_da_resp),  "risposte inviate")
-        kpi_sm(kb3, "Tasso accoglimento", f"{tasso_acc_p}%", f"€ {val_accolti:,} accolti")
-        kpi_sm(kb4, "Tasso rigetto",      f"{tasso_rig_p}%", f"€ {val_rigettati:,} rigettati")
-
-        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-
-        # Lista pratiche archiviate nel periodo
-        if not arch_periodo.empty:
-            st.markdown(
-                f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">'
-                f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
-                f'color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;">'
-                f'Pratiche archiviate — {periodo_sel.lower()}</span>'
-                f'<span style="background:#1e293b;color:white;font-family:Inter,sans-serif;'
-                f'font-size:11px;font-weight:700;border-radius:50%;width:22px;height:22px;'
-                f'display:inline-flex;align-items:center;justify-content:center;">'
-                f'{len(arch_periodo)}</span></div>',
-                unsafe_allow_html=True)
-
-            col_h = st.columns([2,1,2,1,1,0.7])
-            for h_col, h_txt in zip(col_h, ["ID","Data","Cliente","Valore","Esito",""]):
-                h_col.markdown(
-                    f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
-                    f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h_txt}</span>',
-                    unsafe_allow_html=True)
-            st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
-
-            for _, row in arch_periodo.iterrows():
-                c1,c2,c3,c4,c5,c6 = st.columns([2,1,2,1,1,0.7])
-                c1.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span></div>', unsafe_allow_html=True)
-                c2.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span></div>', unsafe_allow_html=True)
-                c3.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span></div>', unsafe_allow_html=True)
-                c4.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span></div>', unsafe_allow_html=True)
-                c5.markdown(f'<div style="background:white;padding:8px 0;">{badge(row["Esito"])}</div>', unsafe_allow_html=True)
-                if c6.button("→", key=f"arch_op_{row['ID']}"):
-                    st.session_state.id_selezionato = row["ID"]
-                    st.session_state.page = "Dettaglio pratica"
-                    st.rerun()
-                st.markdown('<hr style="margin:0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
-        else:
-            st.info(f"Nessuna pratica archiviata nel periodo selezionato.")
-
-        st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
-
-        # ══ STATISTICHE (in fondo) ══
-        st.markdown(
-            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:16px;">'
-            'Statistiche portafoglio</p>', unsafe_allow_html=True)
-
-        def kpi_exec(col, label, value, sub):
+        def kpi_large(col, label, value, sub, bg):
             col.markdown(
-                f'<div class="kpi-card" style="background:#e2e8f0;border-radius:10px;padding:20px 24px;">'
+                f'<div style="background:{bg};border-radius:10px;padding:20px 28px;'
+                f'box-shadow:0 1px 6px rgba(0,0,0,0.07);">'
                 f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-                f'color:#64748b;text-transform:uppercase;letter-spacing:.12em;margin:0 0 10px 0;">{label}</p>'
+                f'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 8px 0;">{label}</p>'
                 f'<p style="font-family:Playfair Display,serif;font-size:32px;font-weight:700;'
                 f'color:#1e293b;margin:0 0 4px 0;line-height:1;">{value}</p>'
-                f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#94a3b8;margin:0;">{sub}</p>'
-                f'</div>',
-                unsafe_allow_html=True)
+                f'<p style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;margin:0;">{sub}</p>'
+                f'</div>', unsafe_allow_html=True)
 
-        k1,k2,k3,k4 = st.columns(4)
-        kpi_exec(k1, "Reclami attivi",     n_attivi,              "in gestione")
-        kpi_exec(k2, "Reclami archiviati", n_archiviate,          "conclusi")
-        kpi_exec(k3, "Da assegnare",       len(da_assegnare),     "in attesa di operatore")
-        kpi_exec(k4, "Da approvare",       len(da_approvare),     "elaborate, in revisione")
+        st.markdown('<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+            'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:8px 0 10px 0;">'
+            'Portafoglio attivo nel periodo</p>', unsafe_allow_html=True)
+        ka1,ka2,ka3,ka4 = st.columns(4)
+        kpi_stat(ka1, "Da assegnare",   n_da_ass,  "in attesa",       "#fef9ee")
+        kpi_stat(ka2, "In lavorazione", n_ass,     "assegnati",       "#eff6ff")
+        kpi_stat(ka3, "Da approvare",   n_da_appr, "al responsabile", "#eff6ff")
+        kpi_stat(ka4, "In istruttoria", n_istr,    "supplemento",     "#fef3c7")
 
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+        st.markdown('<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+            'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:8px 0 10px 0;">'
+            'Reclami archiviati nel periodo</p>', unsafe_allow_html=True)
+        kb1,kb2,kb3,kb4 = st.columns(4)
+        kpi_stat(kb1, "Da operatore",       len(arch_da_op),   "risposte inviate",       "#f8fafc")
+        kpi_stat(kb2, "Da responsabile",    len(arch_da_resp),  "risposte inviate",       "#f8fafc")
+        kpi_stat(kb3, "Tasso accoglimento", f"{tasso_acc_p}%",  f"{len(arch_accolti)} pratiche",   "#f0fdf4")
+        kpi_stat(kb4, "Tasso rigetto",      f"{tasso_rig_p}%",  f"{len(arch_rigettati)} pratiche", "#fff1f2")
 
-        k5,k6,k7,k8 = st.columns(4)
-        kpi_exec(k5, "Valore portafoglio",   f"€ {valore_tot:,}",   "reclami attivi")
-        kpi_exec(k6, "Valore medio reclamo", f"€ {valore_medio:,}", "media storica")
-        kpi_exec(k7, "Tasso accoglimento",   f"{tasso_accolto}%",   "pratiche concluse")
-        kpi_exec(k8, "Tasso rigetto",        f"{tasso_rigetto}%",   "pratiche concluse")
+        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+        st.markdown('<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+            'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:8px 0 10px 0;">'
+            'Valore reclami nel periodo</p>', unsafe_allow_html=True)
+        kc1, kc2 = st.columns(2)
+        kpi_large(kc1, "Valore accolti",   f"€ {val_accolti:,}",   f"{len(arch_accolti)} pratiche accolte",    "#f0fdf4")
+        kpi_large(kc2, "Valore rigettati", f"€ {val_rigettati:,}", f"{len(arch_rigettati)} pratiche rigettate", "#fff1f2")
 
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
-
-    # ══════════════════════════════════════════════
-    # DASHBOARD OPERATORE
-    # ══════════════════════════════════════════════
-    else:
-        st.markdown(
-            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:24px;">'
-            'Dashboard · Operatore</p>',
-            unsafe_allow_html=True)
-
-        nome_op = st.session_state.utente
-        mie_pratiche = attivi_df[attivi_df['Operatore'] == nome_op] if not attivi_df.empty else pd.DataFrame()
-        mie_elaborate = mie_pratiche[mie_pratiche['Stato_workflow'] == 'elaborato'] if not mie_pratiche.empty else pd.DataFrame()
-
-        k1,k2,k3 = st.columns(3)
-        kpi_exec(k1, "Pratiche assegnate",  len(mie_pratiche),  "a te",                "#1e293b")
-        kpi_exec(k2, "Da revisionare",      len(mie_elaborate), "elaborate da Resolva", "#3B82F6")
-        kpi_exec(k3, "Da assegnare",        len(da_assegnare),  "in attesa",            "#f59e0b")
-
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
-
-        st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Le mie pratiche</span>'
-            f'<span style="background:#1e293b;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
-            f'align-items:center;justify-content:center;">{len(mie_pratiche)}</span></div>',
-            unsafe_allow_html=True)
-
-        if mie_pratiche.empty:
-            st.info("Nessuna pratica assegnata.")
-        else:
-            col_h = st.columns([2,1,2,1,1,0.8])
-            for h_col, h_txt in zip(col_h, ["ID Pratica","Data","Cliente","Valore","Stato",""]):
-                h_col.markdown(
-                    f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
-                    f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h_txt}</span>',
-                    unsafe_allow_html=True)
-            st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
-            for _, row in mie_pratiche.iterrows():
-                c1,c2,c3,c4,c5,c6 = st.columns([2,1,2,1,1,0.8])
-                c1.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span>', unsafe_allow_html=True)
-                c2.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span>', unsafe_allow_html=True)
-                c3.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span>', unsafe_allow_html=True)
-                c4.markdown(f'<span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span>', unsafe_allow_html=True)
-                c5.markdown(badge(row["Esito"]), unsafe_allow_html=True)
-                if c6.button("→", key=f"op_{row['ID']}"):
-                    st.session_state.id_selezionato = row["ID"]
-                    st.session_state.page = "Dettaglio pratica"
-                    st.rerun()
-                st.markdown('<hr style="margin:2px 0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
+        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+        _, col_btn_stat = st.columns([3, 1])
+        with col_btn_stat:
+            if st.button("Invia report statistiche", use_container_width=True,
+                         type="primary", key="invia_stats"):
+                righe = [
+                    "RESOLVA — Report statistiche operative",
+                    f"Periodo: {periodo_sel}  |  Generato il {oggi.strftime('%d/%m/%Y')}",
+                    "",
+                    f"ATTIVI: Da assegnare {n_da_ass} · In lavorazione {n_ass} · Da approvare {n_da_appr} · In istruttoria {n_istr}",
+                    f"ARCHIVIATI: Da operatore {len(arch_da_op)} · Da responsabile {len(arch_da_resp)}",
+                    f"TASSI: Accoglimento {tasso_acc_p}% · Rigetto {tasso_rig_p}%",
+                    f"VALORI: Accolti € {val_accolti:,} · Rigettati € {val_rigettati:,}",
+                ]
+                st.text_area("Testo report da copiare", value="\n".join(righe),
+                             height=160, key="txt_report_stats")
+        st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
 
 
 elif st.session_state.page == "Reclami attivi":
@@ -1057,7 +950,8 @@ elif st.session_state.page == "Dettaglio pratica":
         # ══ VALUTAZIONI DELL'OPERATORE ══
         ruolo_corrente = st.session_state.get("ruolo", "Operatore")
         esito_corrente = rec.get("Esito", "")
-        vista_resp     = (ruolo_corrente == "Responsabile" and esito_corrente in ["Al responsabile", "In istruttoria"])
+        vista_resp     = (ruolo_corrente == "Responsabile" and
+                          esito_corrente in ["Al responsabile", "In istruttoria"])
 
         st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)
         st.markdown(
@@ -1067,7 +961,7 @@ elif st.session_state.page == "Dettaglio pratica":
         st.markdown(
             '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
             'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:20px;">'
-            'Valutazioni dell\'Operatore</p>',
+            "Valutazioni dell\'Operatore</p>",
             unsafe_allow_html=True)
 
         col_val, col_act = st.columns([2, 1], gap="large")
@@ -1083,16 +977,14 @@ elif st.session_state.page == "Dettaglio pratica":
                 '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
                 'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px 0;">'
                 'Proposta di decisione</p>', unsafe_allow_html=True)
-
             if vista_resp:
-                badge_col = {"Accogliere":"#d1fae5","Rigettare":"#fee2e2",
-                             "Supplemento istruttorio":"#fef3c7"}.get(proposta_corrente,"#e2e8f0")
-                badge_txt = {"Accogliere":"#065f46","Rigettare":"#b91c1c",
-                             "Supplemento istruttorio":"#92400e"}.get(proposta_corrente,"#475569")
+                _bc = {"Accogliere":"#d1fae5","Rigettare":"#fee2e2",
+                       "Supplemento istruttorio":"#fef3c7"}.get(proposta_corrente,"#e2e8f0")
+                _tc = {"Accogliere":"#065f46","Rigettare":"#b91c1c",
+                       "Supplemento istruttorio":"#92400e"}.get(proposta_corrente,"#475569")
                 st.markdown(
-                    f'<span style="background:{badge_col};color:{badge_txt};'
-                    f'font-family:Inter,sans-serif;font-size:13px;font-weight:700;'
-                    f'padding:6px 16px;border-radius:20px;">'
+                    f'<span style="background:{_bc};color:{_tc};font-family:Inter,sans-serif;'
+                    f'font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;">'
                     f'{proposta_corrente or "Non compilata"}</span>',
                     unsafe_allow_html=True)
                 proposta_sel = proposta_corrente
@@ -1105,7 +997,6 @@ elif st.session_state.page == "Dettaglio pratica":
                 '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
                 'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 8px 0;">'
                 'Note operative</p>', unsafe_allow_html=True)
-
             if vista_resp:
                 st.markdown(
                     f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;'
@@ -1127,7 +1018,6 @@ elif st.session_state.page == "Dettaglio pratica":
                 '<span style="font-weight:400;color:#94a3b8;">'
                 '(caricare solo se modificata rispetto alla bozza Resolva)</span></p>',
                 unsafe_allow_html=True)
-
             if vista_resp:
                 st.markdown(
                     f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;'
@@ -1171,28 +1061,26 @@ elif st.session_state.page == "Dettaglio pratica":
 
             st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-            # Invia al responsabile — solo per operatore (o pratica non ancora inviata)
-            if not vista_resp:
-                if st.button("Invia al responsabile", key=f"resp_{rec['ID']}",
-                             use_container_width=True):
-                    esito_resp = "In istruttoria" if proposta_sel == "Supplemento istruttorio" else "Al responsabile"
-                    sb_update(rec["ID"], {
-                        "stato_workflow": "elaborato",
-                        "esito": esito_resp,
-                        "note": note_val,
-                        "proposta_decisione": proposta_sel,
-                        "bozza_modificata": bozza_mod
-                    })
-                    get_db.clear()
-                    st.success("✅ Pratica inviata al responsabile.")
-                    st.rerun()
+            # Invia al responsabile — solo per operatore
+            if not vista_resp and st.button("Invia al responsabile", key=f"resp_{rec['ID']}",
+                         use_container_width=True):
+                esito_resp = "In istruttoria" if proposta_sel == "Supplemento istruttorio" else "Al responsabile"
+                sb_update(rec["ID"], {
+                    "stato_workflow": "elaborato",
+                    "esito": esito_resp,
+                    "note": note_val,
+                    "proposta_decisione": proposta_sel,
+                    "bozza_modificata": bozza_mod
+                })
+                get_db.clear()
+                st.success("✅ Pratica inviata al responsabile.")
+                st.rerun()
 
             st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
 
             # Invia risposta — responsabile sempre, operatore solo se < soglia
             ruolo_corrente = st.session_state.get("ruolo", "Operatore")
             can_send = (ruolo_corrente == "Responsabile") or (valore_pratica < soglia)
-
             if can_send:
                 if st.button("Invia risposta", key=f"invia_{rec['ID']}",
                              use_container_width=True, type="primary"):
