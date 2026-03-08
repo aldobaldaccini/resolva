@@ -928,6 +928,10 @@ elif st.session_state.page == "Dettaglio pratica":
                 f'</div>', unsafe_allow_html=True)
 
         # ══ VALUTAZIONI DELL'OPERATORE ══
+        ruolo_corrente = st.session_state.get("ruolo", "Operatore")
+        esito_corrente = rec.get("Esito", "")
+        vista_resp     = (ruolo_corrente == "Responsabile" and esito_corrente in ["Al responsabile", "In istruttoria"])
+
         st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)
         st.markdown(
             '<div style="height:3px;background:linear-gradient(90deg,#3B82F6,#1e293b);'
@@ -941,25 +945,52 @@ elif st.session_state.page == "Dettaglio pratica":
 
         col_val, col_act = st.columns([2, 1], gap="large")
 
+        proposta_corrente = rec.get("Proposta_decisione", "")
+        proposte          = ["Accogliere", "Rigettare", "Supplemento istruttorio"]
+        proposta_idx      = proposte.index(proposta_corrente) if proposta_corrente in proposte else 2
+        note_correnti     = rec.get("Note", "")
+        bozza_corrente    = rec.get("Bozza_modificata", "")
+
         with col_val:
             st.markdown(
                 '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
                 'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px 0;">'
                 'Proposta di decisione</p>', unsafe_allow_html=True)
-            proposte = ["Accogliere", "Rigettare", "Supplemento istruttorio"]
-            proposta_corrente = rec.get("Proposta_decisione", "— nessuna proposta —")
-            proposta_idx = proposte.index(proposta_corrente) if proposta_corrente in proposte else 2
-            proposta_sel = st.radio("Proposta", proposte, index=proposta_idx,
-                key=f"proposta_{rec['ID']}", label_visibility="collapsed", horizontal=True)
+
+            if vista_resp:
+                badge_col = {"Accogliere":"#d1fae5","Rigettare":"#fee2e2",
+                             "Supplemento istruttorio":"#fef3c7"}.get(proposta_corrente,"#e2e8f0")
+                badge_txt = {"Accogliere":"#065f46","Rigettare":"#b91c1c",
+                             "Supplemento istruttorio":"#92400e"}.get(proposta_corrente,"#475569")
+                st.markdown(
+                    f'<span style="background:{badge_col};color:{badge_txt};'
+                    f'font-family:Inter,sans-serif;font-size:13px;font-weight:700;'
+                    f'padding:6px 16px;border-radius:20px;">'
+                    f'{proposta_corrente or "Non compilata"}</span>',
+                    unsafe_allow_html=True)
+                proposta_sel = proposta_corrente
+            else:
+                proposta_sel = st.radio("Proposta", proposte, index=proposta_idx,
+                    key=f"proposta_{rec['ID']}", label_visibility="collapsed", horizontal=True)
 
             st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
             st.markdown(
                 '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
                 'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 8px 0;">'
                 'Note operative</p>', unsafe_allow_html=True)
-            note_val = st.text_area("Note", value=rec.get("Note", ""), height=100,
-                key=f"note_{rec['ID']}", label_visibility="collapsed",
-                placeholder="Note interne, supplemento istruttorio richiesto, osservazioni...")
+
+            if vista_resp:
+                st.markdown(
+                    f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;'
+                    f'padding:12px 16px;min-height:60px;">'
+                    f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#475569;margin:0;">'
+                    f'{note_correnti or "<em>Nessuna nota</em>"}</p></div>',
+                    unsafe_allow_html=True)
+                note_val = note_correnti
+            else:
+                note_val = st.text_area("Note", value=note_correnti, height=100,
+                    key=f"note_{rec['ID']}", label_visibility="collapsed",
+                    placeholder="Note interne, supplemento istruttorio richiesto, osservazioni...")
 
             st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
             st.markdown(
@@ -969,18 +1000,28 @@ elif st.session_state.page == "Dettaglio pratica":
                 '<span style="font-weight:400;color:#94a3b8;">'
                 '(caricare solo se modificata rispetto alla bozza Resolva)</span></p>',
                 unsafe_allow_html=True)
-            bozza_mod = rec.get("Bozza_modificata", "")
-            uploaded = st.file_uploader("Carica bozza modificata", type=["docx","pdf"],
-                key=f"upload_{rec['ID']}", label_visibility="collapsed")
-            if uploaded is not None:
-                bozza_mod = f"[file caricato: {uploaded.name}]"
+
+            if vista_resp:
                 st.markdown(
-                    f'<div style="background:#e2e8f0;border-radius:8px;padding:10px 14px;margin-top:6px;">'
-                    f'<p style="font-family:Inter,sans-serif;font-size:12px;color:#1e293b;margin:0;">'
-                    f'📎 <strong>{uploaded.name}</strong> &nbsp;·&nbsp; '
-                    f'<span style="color:#64748b;">{round(uploaded.size/1024,1)} KB</span></p>'
-                    f'</div>',
+                    f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;'
+                    f'padding:12px 16px;min-height:40px;">'
+                    f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#475569;margin:0;">'
+                    f'{bozza_corrente or "<em>Nessuna modifica caricata</em>"}</p></div>',
                     unsafe_allow_html=True)
+                bozza_mod = bozza_corrente
+            else:
+                bozza_mod = bozza_corrente
+                uploaded = st.file_uploader("Carica bozza modificata", type=["docx","pdf"],
+                    key=f"upload_{rec['ID']}", label_visibility="collapsed")
+                if uploaded is not None:
+                    bozza_mod = f"[file caricato: {uploaded.name}]"
+                    st.markdown(
+                        f'<div style="background:#e2e8f0;border-radius:8px;padding:10px 14px;margin-top:6px;">'
+                        f'<p style="font-family:Inter,sans-serif;font-size:12px;color:#1e293b;margin:0;">'
+                        f'📎 <strong>{uploaded.name}</strong> &nbsp;·&nbsp; '
+                        f'<span style="color:#64748b;">{round(uploaded.size/1024,1)} KB</span></p>'
+                        f'</div>',
+                        unsafe_allow_html=True)
 
         with col_act:
             st.markdown(
@@ -991,7 +1032,7 @@ elif st.session_state.page == "Dettaglio pratica":
             valore_pratica = float(rec.get("Valore", 0) or 0)
             soglia = 1000.0
 
-            if st.button("Salva valutazioni", key=f"salva_val_{rec['ID']}",
+            if not vista_resp and st.button("Salva valutazioni", key=f"salva_val_{rec['ID']}",
                          use_container_width=True):
                 sb_update(rec["ID"], {
                     "note": note_val,
@@ -1003,20 +1044,21 @@ elif st.session_state.page == "Dettaglio pratica":
 
             st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-            # Invia al responsabile — sempre attivo
-            if st.button("Invia al responsabile", key=f"resp_{rec['ID']}",
-                         use_container_width=True):
-                esito_resp = "In istruttoria" if proposta_sel == "Supplemento istruttorio" else "Al responsabile"
-                sb_update(rec["ID"], {
-                    "stato_workflow": "elaborato",
-                    "esito": esito_resp,
-                    "note": note_val,
-                    "proposta_decisione": proposta_sel,
-                    "bozza_modificata": bozza_mod
-                })
-                get_db.clear()
-                st.success("✅ Pratica inviata al responsabile.")
-                st.rerun()
+            # Invia al responsabile — solo per operatore (o pratica non ancora inviata)
+            if not vista_resp:
+                if st.button("Invia al responsabile", key=f"resp_{rec['ID']}",
+                             use_container_width=True):
+                    esito_resp = "In istruttoria" if proposta_sel == "Supplemento istruttorio" else "Al responsabile"
+                    sb_update(rec["ID"], {
+                        "stato_workflow": "elaborato",
+                        "esito": esito_resp,
+                        "note": note_val,
+                        "proposta_decisione": proposta_sel,
+                        "bozza_modificata": bozza_mod
+                    })
+                    get_db.clear()
+                    st.success("✅ Pratica inviata al responsabile.")
+                    st.rerun()
 
             st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
 
@@ -1038,7 +1080,7 @@ elif st.session_state.page == "Dettaglio pratica":
                         "bozza_modificata": bozza_mod
                     })
                     get_db.clear()
-                    st.success("✅ Risposta inviata. Pratica archiviata.")
+                    st.success("Risposta inviata. Reclamo archiviato.")
                     st.rerun()
             else:
                 st.markdown(
