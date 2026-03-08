@@ -586,27 +586,27 @@ if st.session_state.page == "Dashboard":
             'Portafoglio attivo nel periodo</p>', unsafe_allow_html=True)
         ka1,ka2,ka3,ka4 = st.columns(4)
         kpi_stat(ka1, "Da assegnare",   n_da_ass,  "in attesa",       "#fef9ee")
-        kpi_stat(ka2, "In lavorazione", n_ass,     "assegnati",       "#eff6ff")
-        kpi_stat(ka3, "Da approvare",   n_da_appr, "al responsabile", "#eff6ff")
-        kpi_stat(ka4, "In istruttoria", n_istr,    "supplemento",     "#fef3c7")
+        kpi_stat(ka2, "In lavorazione", n_ass,     "assegnati",       "#fef9ee")
+        kpi_stat(ka3, "Da approvare",   n_da_appr, "al responsabile", "#fef9ee")
+        kpi_stat(ka4, "In istruttoria", n_istr,    "supplemento",     "#fef9ee")
 
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
         st.markdown('<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
             'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:8px 0 10px 0;">'
             'Reclami archiviati nel periodo</p>', unsafe_allow_html=True)
         kb1,kb2,kb3,kb4 = st.columns(4)
-        kpi_stat(kb1, "Da operatore",       len(arch_da_op),   "risposte inviate",       "#f8fafc")
-        kpi_stat(kb2, "Da responsabile",    len(arch_da_resp),  "risposte inviate",       "#f8fafc")
-        kpi_stat(kb3, "Tasso accoglimento", f"{tasso_acc_p}%",  f"{len(arch_accolti)} pratiche",   "#f0fdf4")
-        kpi_stat(kb4, "Tasso rigetto",      f"{tasso_rig_p}%",  f"{len(arch_rigettati)} pratiche", "#fff1f2")
+        kpi_stat(kb1, "Da operatore",       len(arch_da_op),   "risposte inviate",       "#fef3c7")
+        kpi_stat(kb2, "Da responsabile",    len(arch_da_resp),  "risposte inviate",       "#fef3c7")
+        kpi_stat(kb3, "Tasso accoglimento", f"{tasso_acc_p}%",  f"{len(arch_accolti)} pratiche",   "#fef3c7")
+        kpi_stat(kb4, "Tasso rigetto",      f"{tasso_rig_p}%",  f"{len(arch_rigettati)} pratiche", "#fef3c7")
 
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
         st.markdown('<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
             'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:8px 0 10px 0;">'
             'Valore reclami nel periodo</p>', unsafe_allow_html=True)
         kc1, kc2 = st.columns(2)
-        kpi_large(kc1, "Valore accolti",   f"€ {val_accolti:,}",   f"{len(arch_accolti)} pratiche accolte",    "#f0fdf4")
-        kpi_large(kc2, "Valore rigettati", f"€ {val_rigettati:,}", f"{len(arch_rigettati)} pratiche rigettate", "#fff1f2")
+        kpi_large(kc1, "Valore accolti",   f"€ {val_accolti:,}",   f"{len(arch_accolti)} pratiche accolte",    "#bbf7d0")
+        kpi_large(kc2, "Valore rigettati", f"€ {val_rigettati:,}", f"{len(arch_rigettati)} pratiche rigettate", "#fecdd3")
 
         st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
         _, col_btn_stat = st.columns([3, 1])
