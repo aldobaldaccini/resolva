@@ -139,6 +139,9 @@ div[data-testid="stSidebar"] .stTextInput input {
 .pro-table tbody tr:last-child td { border-bottom:none; }
 .pro-table tbody tr:nth-child(even) td { background:#f8fafc; }
 .pro-table tbody tr:hover td { background:#eff6ff; transition:background .12s; }
+.pro-table-arch thead tr th { background:#6B1F3A !important; }
+.pro-table-arch tbody tr:nth-child(even) td { background:#fdf2f5; }
+.pro-table-arch tbody tr:hover td { background:#fce7ef; transition:background .12s; }
 .col-id { font-weight:700; color:#0f172a; white-space:nowrap; }
 .col-val { white-space:nowrap; font-variant-numeric:tabular-nums; }
 .badge { display:inline-block; padding:4px 11px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; }
@@ -189,6 +192,8 @@ div[data-testid="stSidebar"] .stTextInput input {
 .step-done { background:#dcfce7; } .step-pending { background:#fef9c3; } .step-wait { background:#f1f5f9; }
 .step-text { font-family:'Inter',sans-serif; font-size:13px; color:#374151; font-weight:500; }
 .step-date { font-size:11px; color:#94a3b8; margin-top:2px; }
+
+.fascicolo-header-arch { background:#6B1F3A !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -272,7 +277,7 @@ def sec(icon, title, color=""):
     st.markdown(f'<div class="sec-header {color}"><span class="sec-icon">{icon}</span>'
                 f'<span class="sec-title">{title}</span></div>', unsafe_allow_html=True)
 
-def build_table(data, cols, headers):
+def build_table(data, cols, headers, table_class='pro-table'):
     rows = ""
     for _, row in data.iterrows():
         cells = ""
@@ -719,7 +724,8 @@ elif st.session_state.page == "Reclami archiviati":
     else:
         st.markdown(build_table(data_arch_view,
             ["ID","Data","Cliente","Valore","Operatore","Esito","Data_archiviazione"],
-            ["Fascicolo","Data","Cliente","Valore (€)","Operatore","Esito","Risposta inviata"]),
+            ["Fascicolo","Data","Cliente","Valore (€)","Operatore","Esito","Risposta inviata"],
+            table_class="pro-table pro-table-arch"),
             unsafe_allow_html=True)
 
         ids_arch    = data_arch_view["ID"].tolist()
@@ -853,14 +859,16 @@ elif st.session_state.page == "Dettaglio pratica":
         if st.button(_back_label):
             st.session_state.page = _back_page; st.rerun()
 
-        stato_cls = "status-attivo" if rec["Stato"] == "Attivo" else "status-archiviato"
-        st.markdown(f"""<div class="fascicolo-header">
+        stato_cls   = "status-attivo" if rec["Stato"] == "Attivo" else "status-archiviato"
+        header_cls  = "fascicolo-header" if rec["Stato"] == "Attivo" else "fascicolo-header fascicolo-header-arch"
+        meta_color  = "#94a3b8" if rec["Stato"] == "Attivo" else "#f0b8c8"
+        st.markdown(f"""<div class="{header_cls}">
             <div>
                 <div class="fascicolo-id">Fascicolo {rec['ID']}</div>
                 <div class="fascicolo-meta">
-                    {rec['Cliente']} &nbsp;·&nbsp; Ricevuto il {rec['Data']}
+                    <span style="color:{meta_color};">{rec['Cliente']} &nbsp;·&nbsp; Ricevuto il {rec['Data']}
                     &nbsp;·&nbsp; Valore: <strong style="color:white;">€ {rec['Valore']:,}</strong>
-                    &nbsp;·&nbsp; Operatore: {rec['Assegnato_a']}
+                    &nbsp;·&nbsp; Operatore: {rec['Assegnato_a']}</span>
                 </div>
             </div>
             <span class="status-pill {stato_cls}">{rec['Stato'].upper()}</span>
@@ -884,22 +892,22 @@ elif st.session_state.page == "Dettaglio pratica":
                 if url and url != "#":
                     st.markdown(
                         f'<a href="{url}" target="_blank" style="text-decoration:none;color:inherit;">'
-                        f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
+                        f'<div style="background:#6B1F3A;border-radius:10px;padding:18px 24px;'
                         f'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
                         f'<div><div style="font-family:Playfair Display,serif;font-size:16px;'
                         f'color:#fff;font-weight:700;">{title}</div>'
                         f'<div style="font-family:Inter,sans-serif;font-size:12px;'
-                        f'color:#94a3b8;margin-top:4px;">{sub}</div></div>'
+                        f'color:#f0b8c8;margin-top:4px;">{sub}</div></div>'
                         f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
                         f'</div></a>', unsafe_allow_html=True)
                 else:
                     st.markdown(
-                        f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
+                        f'<div style="background:#6B1F3A;border-radius:10px;padding:18px 24px;'
                         f'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
                         f'<div><div style="font-family:Playfair Display,serif;font-size:16px;'
                         f'color:#fff;font-weight:700;">{title}</div>'
                         f'<div style="font-family:Inter,sans-serif;font-size:12px;'
-                        f'color:#94a3b8;margin-top:4px;">{sub}</div></div>'
+                        f'color:#f0b8c8;margin-top:4px;">{sub}</div></div>'
                         f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
                         f'</div>', unsafe_allow_html=True)
 
