@@ -1014,46 +1014,91 @@ elif st.session_state.page == "Dettaglio pratica":
         is_archiviato  = (stato_rec == "Archiviato")
 
         if is_archiviato:
-            st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-            st.markdown(
-                '<div style="height:3px;background:linear-gradient(90deg,#3B82F6,#1e293b);'
-                'border-radius:2px;margin-bottom:20px;"></div>',
-                unsafe_allow_html=True)
-            st.markdown(
-                '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-                'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:16px;">'
-                'Fascicolo archiviato</p>',
-                unsafe_allow_html=True)
-
-            # Bozza inviata — resolva o modificata
-            bozza_fin = rec.get("Bozza_modificata", "") or rec.get("DOCX_bozza", "")
-            label_bozza = "Bozza modificata" if rec.get("Bozza_modificata","") else "Bozza Resolva"
-            sub_bozza   = "Versione modificata dall'operatore/responsabile" if rec.get("Bozza_modificata","") else "Bozza generata da Resolva"
-
-            for card_title, card_sub, card_url in [
-                ("Reclamo integrale",  "Documento PDF originale",    rec.get("PDF_reclamo","") or "#"),
-                ("Nota Tecnica",       "Parere giuridico · Analisi", rec.get("PDF_nota","") or "#"),
-                (label_bozza,          sub_bozza,                    bozza_fin or "#"),
-            ]:
-                st.markdown(
-                    f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
-                    f'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
-                    f'<div>'
-                    f'<div style="font-family:Playfair Display,serif;font-size:16px;'
-                    f'color:#fff;font-weight:700;">{card_title}</div>'
-                    f'<div style="font-family:Inter,sans-serif;font-size:12px;'
-                    f'color:#94a3b8;margin-top:4px;">{card_sub}</div>'
-                    f'</div>'
-                    f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
-                    f'</div>',
-                    unsafe_allow_html=True)
-
-            # Data archiviazione
+            # Vista fascicolo archiviato — solo documenti + operatore
+            operatore_val = rec.get("Operatore","") or rec.get("Assegnato_a","") or "—"
             data_arch_val = rec.get("Data_archiviazione","")
-            if data_arch_val:
+            url_reclamo   = rec.get("PDF_reclamo","") or "#"
+            url_nota      = rec.get("PDF_nota","") or "#"
+            url_bozza     = rec.get("DOCX_bozza","") or "#"
+            bozza_mod_val = rec.get("Bozza_modificata","")
+            has_bozza_mod = bool(bozza_mod_val and bozza_mod_val.strip())
+
+            # Info operatore + data
+            st.markdown(
+                f'<div style="display:flex;gap:32px;margin-bottom:24px;">' 
+                f'<div>' 
+                f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;' 
+                f'color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin:0 0 4px 0;">Istruita da</p>' 
+                f'<p style="font-family:Inter,sans-serif;font-size:14px;color:#1e293b;font-weight:600;margin:0;">{operatore_val}</p>' 
+                f'</div>' 
+                + (f'<div>' 
+                   f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;' 
+                   f'color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin:0 0 4px 0;">Risposta inviata il</p>' 
+                   f'<p style="font-family:Inter,sans-serif;font-size:14px;color:#1e293b;font-weight:600;margin:0;">{data_arch_val}</p>' 
+                   f'</div>' if data_arch_val else "") +
+                f'</div>',
+                unsafe_allow_html=True)
+
+            # Card 1 — Reclamo integrale (post-demo)
+            st.markdown(
+                '<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
+                'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;opacity:0.55;">'
+                '<div>'
+                '<div style="font-family:Playfair Display,serif;font-size:16px;color:#fff;font-weight:700;">Reclamo integrale</div>'
+                '<div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;margin-top:4px;">Documento PDF originale</div>'
+                '</div>'
+                '<span style="font-size:22px;color:#475569;font-weight:300;">&#x2192;</span>'
+                '</div>',
+                unsafe_allow_html=True)
+
+            # Card 2 — Nota Tecnica (cliccabile)
+            st.markdown(
+                f'<a href="{url_nota}" target="_blank" style="text-decoration:none;">'
+                f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
+                f'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
+                f'<div>'
+                f'<div style="font-family:Playfair Display,serif;font-size:16px;color:#fff;font-weight:700;">Nota Tecnica</div>'
+                f'<div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;margin-top:4px;">Parere giuridico · Riferimenti normativi · Decisioni ABF</div>'
+                f'</div>'
+                f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
+                f'</div></a>',
+                unsafe_allow_html=True)
+
+            # Card 3 — Bozza Resolva (cliccabile)
+            st.markdown(
+                f'<a href="{url_bozza}" target="_blank" style="text-decoration:none;">'
+                f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
+                f'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
+                f'<div>'
+                f'<div style="font-family:Playfair Display,serif;font-size:16px;color:#fff;font-weight:700;">Bozza Resolva</div>'
+                f'<div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;margin-top:4px;">Bozza risposta generata da Resolva</div>'
+                f'</div>'
+                f'<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
+                f'</div></a>',
+                unsafe_allow_html=True)
+
+            # Card 4 — Risposta inviata (post-demo se bozza modificata)
+            if has_bozza_mod:
                 st.markdown(
-                    f'<p style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;'
-                    f'margin-top:8px;">Risposta inviata il {data_arch_val}</p>',
+                    '<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
+                    'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;opacity:0.55;">'
+                    '<div>'
+                    '<div style="font-family:Playfair Display,serif;font-size:16px;color:#fff;font-weight:700;">Risposta inviata</div>'
+                    '<div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;margin-top:4px;">Bozza modificata · disponibile nella versione completa</div>'
+                    '</div>'
+                    '<span style="font-size:22px;color:#475569;font-weight:300;">&#x2192;</span>'
+                    '</div>',
+                    unsafe_allow_html=True)
+            else:
+                st.markdown(
+                    '<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
+                    'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;opacity:0.55;">'
+                    '<div>'
+                    '<div style="font-family:Playfair Display,serif;font-size:16px;color:#fff;font-weight:700;">Risposta inviata</div>'
+                    '<div style="font-family:Inter,sans-serif;font-size:12px;color:#94a3b8;margin-top:4px;">Coincide con la bozza Resolva · post-demo</div>'
+                    '</div>'
+                    '<span style="font-size:22px;color:#475569;font-weight:300;">&#x2192;</span>'
+                    '</div>',
                     unsafe_allow_html=True)
 
         if not is_archiviato:
