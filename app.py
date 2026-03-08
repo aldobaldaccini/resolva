@@ -702,6 +702,8 @@ elif st.session_state.page == "Reclami attivi":
 # ============================================================
 elif st.session_state.page == "Reclami archiviati":
     data_arch = df[df['Stato'] == "Archiviato"].reset_index(drop=True)
+    if "Data_archiviazione" not in data_arch.columns:
+        data_arch["Data_archiviazione"] = ""
 
     st.markdown("""<style>
     div[data-baseweb="select"] > div { transition: border-color .15s, box-shadow .15s; }
