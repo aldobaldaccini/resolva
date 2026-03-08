@@ -883,7 +883,7 @@ elif st.session_state.page == "Dettaglio pratica":
             def doc_card(title, sub, url=None):
                 if url and url != "#":
                     st.markdown(
-                        f'<a href="{url}" target="_blank" style="text-decoration:none;">'
+                        f'<a href="{url}" target="_blank" style="text-decoration:none;color:inherit;">'
                         f'<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
                         f'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
                         f'<div><div style="font-family:Playfair Display,serif;font-size:16px;'
@@ -914,7 +914,7 @@ elif st.session_state.page == "Dettaglio pratica":
                 info_parts.append(f"Risposta inviata il {data_arch_val}")
             info_parts.append(f"Operatore: <strong>{operatore_val}</strong>")
             st.markdown(
-                '<div style="text-align:right;margin-top:16px;">' +
+                '<div style="text-align:right;margin-top:12px;margin-bottom:8px;">' +
                 ' &nbsp;·&nbsp; '.join(
                     f'<span style="font-family:Inter,sans-serif;font-size:12px;color:#64748b;">{p}</span>'
                     for p in info_parts) +
@@ -922,280 +922,279 @@ elif st.session_state.page == "Dettaglio pratica":
 
         else:
             col_main, col_side = st.columns([2, 1], gap="large")
+            wf = rec.get("Stato_workflow", "in_elaborazione")
 
-        wf = rec.get("Stato_workflow", "in_elaborazione")
+            with col_main:
+                import re
 
-        with col_main:
-            import re
-
-            # ── SINTESI DEL RECLAMO ──
-            sec("", "Sintesi del reclamo")
-            sintesi_src = rec.get("Sintesi_reclamo") or rec.get("Sintesi_AI") or ""
-            if wf == "elaborato" and sintesi_src:
-                sintesi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', sintesi_src)
-                sintesi_html = re.sub(r'\*(.+?)\*', r'<strong>\1</strong>', sintesi_html)
-                st.markdown(f'<div class="ai-summary">{sintesi_html}</div>', unsafe_allow_html=True)
-            else:
-                st.warning("⏳ Elaborazione in corso. La sintesi sarà disponibile a breve.")
-
-            # Reclamo integrale — card scura statica (click post-demo)
-            st.markdown(
-                '<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
-                'display:flex;align-items:center;justify-content:space-between;margin-top:12px;">'
-                '<div>'
-                '<div style="font-family:Playfair Display,serif;font-size:16px;'
-                'color:#fff;font-weight:700;">Reclamo integrale</div>'
-                '<div style="font-family:Inter,sans-serif;font-size:12px;'
-                'color:#94a3b8;margin-top:4px;">Documento PDF</div>'
-                '</div>'
-                '<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
-                '</div>',
-                unsafe_allow_html=True)
-
-            # Divisore
-            st.markdown(
-                '<div style="height:2px;background:linear-gradient(90deg,#3B82F6,#1e293b);' +
-                'border-radius:2px;margin:24px 0;"></div>',
-                unsafe_allow_html=True)
-
-            # ── ANALISI RESOLVA ──
-            sec("", "Analisi Resolva")
-
-            # Sintesi dell'analisi — primo elemento, stesso stile titolo sezione
-            sintesi_analisi = rec.get("Sintesi_analisi") or ""
-            if wf == "elaborato":
-                if sintesi_analisi:
-                    analisi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', sintesi_analisi)
-                    analisi_html = re.sub(r'\*(.+?)\*', r'<strong>\1</strong>', analisi_html)
-                    st.markdown(f'<div class="ai-summary">{analisi_html}</div>', unsafe_allow_html=True)
+                # ── SINTESI DEL RECLAMO ──
+                sec("", "Sintesi del reclamo")
+                sintesi_src = rec.get("Sintesi_reclamo") or rec.get("Sintesi_AI") or ""
+                if wf == "elaborato" and sintesi_src:
+                    sintesi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', sintesi_src)
+                    sintesi_html = re.sub(r'\*(.+?)\*', r'<strong>\1</strong>', sintesi_html)
+                    st.markdown(f'<div class="ai-summary">{sintesi_html}</div>', unsafe_allow_html=True)
                 else:
-                    esito_attuale = rec.get("Esito", "")
-                    badge_color = {"Accolto":"#d1fae5","Rigettato":"#fce7f3",
-                                   "In analisi":"#e2e8f0","Draft":"#e2e8f0"}.get(esito_attuale,"#e2e8f0")
-                    badge_txt   = {"Accolto":"#065f46","Rigettato":"#9d174d",
-                                   "In analisi":"#475569","Draft":"#475569"}.get(esito_attuale,"#475569")
-                    st.markdown(
-                        f'<div class="ai-summary">' +
-                        (f'<span style="background:{badge_color};color:{badge_txt};' +
-                         f'font-family:Inter,sans-serif;font-size:11px;font-weight:700;' +
-                         f'padding:3px 10px;border-radius:20px;">{esito_attuale}</span>' if esito_attuale else "") +
-                        f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#94a3b8;' +
-                        f'margin:8px 0 0 0;">Sintesi analisi disponibile dopo configurazione Supabase.</p>' +
-                        f'</div>',
-                        unsafe_allow_html=True)
+                    st.warning("⏳ Elaborazione in corso. La sintesi sarà disponibile a breve.")
 
-                # Nota Tecnica + Bozza di Risposta
-                pdf_link  = rec.get("PDF_nota",   "#")
-                docx_link = rec.get("DOCX_bozza", "#")
+                # Reclamo integrale — card scura statica (click post-demo)
                 st.markdown(
-                    f'<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">' +
-                    f'<a href="{pdf_link}" target="_blank" style="display:flex;align-items:center;' +
-                    f'justify-content:space-between;background:#1e293b;border-radius:10px;' +
-                    f'padding:18px 24px;text-decoration:none;">' +
-                    f'<div><div style="font-family:Playfair Display,serif;font-size:16px;' +
-                    f'color:#fff;font-weight:700;">Nota Tecnica</div>' +
-                    f'<div style="font-family:Inter,sans-serif;font-size:12px;' +
-                    f'color:#94a3b8;margin-top:4px;">Parere giuridico · Riferimenti normativi · Decisioni ABF</div>' +
-                    f'</div><span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span></a>' +
-                    f'<a href="{docx_link}" target="_blank" style="display:flex;align-items:center;' +
-                    f'justify-content:space-between;background:#1e293b;border-radius:10px;' +
-                    f'padding:18px 24px;text-decoration:none;">' +
-                    f'<div><div style="font-family:Playfair Display,serif;font-size:16px;' +
-                    f'color:#fff;font-weight:700;">Bozza di Risposta</div>' +
-                    f'<div style="font-family:Inter,sans-serif;font-size:12px;' +
-                    f'color:#94a3b8;margin-top:4px;">Documento editabile · Pronto per revisione e invio</div>' +
-                    f'</div><span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span></a>' +
-                    f'</div>',
-                    unsafe_allow_html=True)
-            else:
-                st.info("I documenti saranno disponibili al termine dell'elaborazione.")
-        with col_side:
-            sec("", "Avanzamento analisi")
-            steps = ([("✅","step-done","Reclamo ricevuto",rec['Data']),
-                      ("✅","step-done","Analisi AI completata","oggi"),
-                      ("✅","step-done","Nota tecnica generata","oggi"),
-                      ("✅","step-done","Bozza risposta generata","oggi"),
-                      ("⏳","step-pending","Valutazioni operatore","in attesa"),
-                      ("🔒","step-wait","Invio al responsabile","—")]
-                     if wf == "elaborato" else
-                     [("✅","step-done","Reclamo ricevuto",rec['Data']),
-                      ("⏳","step-pending","Analisi AI in corso","in corso..."),
-                      ("🔒","step-wait","Nota tecnica","—"),
-                      ("🔒","step-wait","Bozza risposta","—"),
-                      ("🔒","step-wait","Valutazioni operatore","—"),
-                      ("🔒","step-wait","Invio al responsabile","—")])
-            st.markdown(
-                '<div class="sec-body">' +
-                "".join(f'<div class="workflow-step"><div class="step-icon {cls}">{icon}</div>'
-                        f'<div><div class="step-text">{label}</div>'
-                        f'<div class="step-date">{date}</div></div></div>'
-                        for icon, cls, label, date in steps) +
-                '</div>', unsafe_allow_html=True)
-
-            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-            st.markdown(
-                f'<div style="background:#f1f5f9;border-radius:8px;padding:12px 16px;">'
-                f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-                f'color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin:0 0 4px 0;">'
-                f'Assegnato a</p>'
-                f'<p style="font-family:Inter,sans-serif;font-size:14px;font-weight:600;'
-                f'color:#1e293b;margin:0;">{rec.get("Assegnato_a", "—")}</p>'
-                f'</div>', unsafe_allow_html=True)
-
-        # ══ VALUTAZIONI DELL'OPERATORE ══
-        ruolo_corrente = st.session_state.get("ruolo", "Operatore")
-        esito_corrente = rec.get("Esito", "")
-        vista_resp     = (ruolo_corrente == "Responsabile" and
-                          esito_corrente in ["Al responsabile", "In istruttoria"])
-
-        st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)
-        st.markdown(
-            '<div style="height:3px;background:linear-gradient(90deg,#3B82F6,#1e293b);'
-            'border-radius:2px;margin-bottom:20px;"></div>',
-            unsafe_allow_html=True)
-        st.markdown(
-            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:20px;">'
-            "Valutazioni dell\'Operatore</p>",
-            unsafe_allow_html=True)
-
-        col_val, col_act = st.columns([2, 1], gap="large")
-
-        proposta_corrente = rec.get("Proposta_decisione", "")
-        proposte          = ["Accogliere", "Rigettare", "Supplemento istruttorio"]
-        proposta_idx      = proposte.index(proposta_corrente) if proposta_corrente in proposte else 2
-        note_correnti     = rec.get("Note", "")
-        bozza_corrente    = rec.get("Bozza_modificata", "")
-
-        with col_val:
-            st.markdown(
-                '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-                'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px 0;">'
-                'Proposta di decisione</p>', unsafe_allow_html=True)
-            if vista_resp:
-                _bc = {"Accogliere":"#d1fae5","Rigettare":"#fee2e2",
-                       "Supplemento istruttorio":"#fef3c7"}.get(proposta_corrente,"#e2e8f0")
-                _tc = {"Accogliere":"#065f46","Rigettare":"#b91c1c",
-                       "Supplemento istruttorio":"#92400e"}.get(proposta_corrente,"#475569")
-                st.markdown(
-                    f'<span style="background:{_bc};color:{_tc};font-family:Inter,sans-serif;'
-                    f'font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;">'
-                    f'{proposta_corrente or "Non compilata"}</span>',
-                    unsafe_allow_html=True)
-                proposta_sel = proposta_corrente
-            else:
-                proposta_sel = st.radio("Proposta", proposte, index=proposta_idx,
-                    key=f"proposta_{rec['ID']}", label_visibility="collapsed", horizontal=True)
-
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-            st.markdown(
-                '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-                'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 8px 0;">'
-                'Note operative</p>', unsafe_allow_html=True)
-            if vista_resp:
-                st.markdown(
-                    f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;'
-                    f'padding:12px 16px;min-height:60px;">'
-                    f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#475569;margin:0;">'
-                    f'{note_correnti or "<em>Nessuna nota</em>"}</p></div>',
-                    unsafe_allow_html=True)
-                note_val = note_correnti
-            else:
-                note_val = st.text_area("Note", value=note_correnti, height=100,
-                    key=f"note_{rec['ID']}", label_visibility="collapsed",
-                    placeholder="Note interne, supplemento istruttorio richiesto, osservazioni...")
-
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-            st.markdown(
-                '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-                'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 4px 0;">'
-                'Bozza risposta modificata &nbsp;'
-                '<span style="font-weight:400;color:#94a3b8;">'
-                '(caricare solo se modificata rispetto alla bozza Resolva)</span></p>',
-                unsafe_allow_html=True)
-            if vista_resp:
-                bozza_mod = st.text_area("Bozza risposta", value=bozza_corrente,
-                    height=120, key=f"bozza_resp_{rec['ID']}", label_visibility="collapsed",
-                    placeholder="Modifica qui il testo della bozza risposta prima di inviare...")
-            else:
-                bozza_mod = bozza_corrente
-                uploaded = st.file_uploader("Carica bozza modificata", type=["docx","pdf"],
-                    key=f"upload_{rec['ID']}", label_visibility="collapsed")
-                if uploaded is not None:
-                    bozza_mod = f"[file caricato: {uploaded.name}]"
-                    st.markdown(
-                        f'<div style="background:#e2e8f0;border-radius:8px;padding:10px 14px;margin-top:6px;">'
-                        f'<p style="font-family:Inter,sans-serif;font-size:12px;color:#1e293b;margin:0;">'
-                        f'📎 <strong>{uploaded.name}</strong> &nbsp;·&nbsp; '
-                        f'<span style="color:#64748b;">{round(uploaded.size/1024,1)} KB</span></p>'
-                        f'</div>',
-                        unsafe_allow_html=True)
-
-        with col_act:
-            st.markdown(
-                '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
-                'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 16px 0;">'
-                'Azioni</p>', unsafe_allow_html=True)
-
-            valore_pratica = float(rec.get("Valore", 0) or 0)
-            soglia = 1000.0
-
-            if not vista_resp and st.button("Salva valutazioni", key=f"salva_val_{rec['ID']}",
-                         use_container_width=True):
-                sb_update(rec["ID"], {
-                    "note": note_val,
-                    "proposta_decisione": proposta_sel,
-                    "bozza_modificata": bozza_mod
-                })
-                get_db.clear()
-                st.success("Valutazioni salvate.")
-
-            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-
-            # Invia al responsabile — solo per operatore
-            if not vista_resp and st.button("Invia al responsabile", key=f"resp_{rec['ID']}",
-                         use_container_width=True):
-                esito_resp = "In istruttoria" if proposta_sel == "Supplemento istruttorio" else "Al responsabile"
-                sb_update(rec["ID"], {
-                    "stato_workflow": "elaborato",
-                    "esito": esito_resp,
-                    "note": note_val,
-                    "proposta_decisione": proposta_sel,
-                    "bozza_modificata": bozza_mod
-                })
-                get_db.clear()
-                st.success("✅ Pratica inviata al responsabile.")
-                st.rerun()
-
-            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-
-            # Invia risposta
-            ruolo_corrente = st.session_state.get("ruolo", "Operatore")
-            can_send = (ruolo_corrente == "Responsabile") or (valore_pratica < soglia)
-            if can_send:
-                if st.button("Invia risposta", key=f"invia_{rec['ID']}",
-                             use_container_width=True, type="primary"):
-                    esito_out = proposta_sel if proposta_sel in ["Accogliere","Rigettare"] else "Draft"
-                    if esito_out == "Accogliere": esito_out = "Accolto"
-                    if esito_out == "Rigettare":  esito_out = "Rigettato"
-                    from datetime import datetime as _dt
-                    sb_update(rec["ID"], {
-                        "stato": "Archiviato",
-                        "esito": esito_out,
-                        "note": note_val,
-                        "proposta_decisione": proposta_sel,
-                        "bozza_modificata": bozza_mod,
-                        "data_archiviazione": _dt.now().strftime("%d/%m/%Y")
-                    })
-                    get_db.clear()
-                    st.success("Risposta inviata. Reclamo archiviato.")
-                    st.rerun()
-            else:
-                st.markdown(
-                    '<div style="background:#e2e8f0;border-radius:8px;padding:10px 14px;'
-                    'margin-top:2px;">'
-                    '<p style="font-family:Inter,sans-serif;font-size:11px;'
-                    'color:#475569;margin:0;">'
-                    'Invio risposta disattivato · Valore superiore a € 1.000</p>'
+                    '<div style="background:#1e293b;border-radius:10px;padding:18px 24px;'
+                    'display:flex;align-items:center;justify-content:space-between;margin-top:12px;">'
+                    '<div>'
+                    '<div style="font-family:Playfair Display,serif;font-size:16px;'
+                    'color:#fff;font-weight:700;">Reclamo integrale</div>'
+                    '<div style="font-family:Inter,sans-serif;font-size:12px;'
+                    'color:#94a3b8;margin-top:4px;">Documento PDF</div>'
+                    '</div>'
+                    '<span style="font-size:22px;color:#3B82F6;font-weight:300;">&#x2192;</span>'
                     '</div>',
                     unsafe_allow_html=True)
+
+                # Divisore
+                st.markdown(
+                    '<div style="height:2px;background:linear-gradient(90deg,#3B82F6,#1e293b);' +
+                    'border-radius:2px;margin:24px 0;"></div>',
+                    unsafe_allow_html=True)
+
+                # ── ANALISI RESOLVA ──
+                sec("", "Analisi Resolva")
+
+                # Sintesi dell'analisi — primo elemento, stesso stile titolo sezione
+                sintesi_analisi = rec.get("Sintesi_analisi") or ""
+                if wf == "elaborato":
+                    if sintesi_analisi:
+                        analisi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', sintesi_analisi)
+                        analisi_html = re.sub(r'\*(.+?)\*', r'<strong>\1</strong>', analisi_html)
+                        st.markdown(f'<div class="ai-summary">{analisi_html}</div>', unsafe_allow_html=True)
+                    else:
+                        esito_attuale = rec.get("Esito", "")
+                        badge_color = {"Accolto":"#d1fae5","Rigettato":"#fce7f3",
+                                       "In analisi":"#e2e8f0","Draft":"#e2e8f0"}.get(esito_attuale,"#e2e8f0")
+                        badge_txt   = {"Accolto":"#065f46","Rigettato":"#9d174d",
+                                       "In analisi":"#475569","Draft":"#475569"}.get(esito_attuale,"#475569")
+                        st.markdown(
+                            f'<div class="ai-summary">' +
+                            (f'<span style="background:{badge_color};color:{badge_txt};' +
+                             f'font-family:Inter,sans-serif;font-size:11px;font-weight:700;' +
+                             f'padding:3px 10px;border-radius:20px;">{esito_attuale}</span>' if esito_attuale else "") +
+                            f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#94a3b8;' +
+                            f'margin:8px 0 0 0;">Sintesi analisi disponibile dopo configurazione Supabase.</p>' +
+                            f'</div>',
+                            unsafe_allow_html=True)
+
+                    # Nota Tecnica + Bozza di Risposta
+                    pdf_link  = rec.get("PDF_nota",   "#")
+                    docx_link = rec.get("DOCX_bozza", "#")
+                    st.markdown(
+                        f'<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">' +
+                        f'<a href="{pdf_link}" target="_blank" style="display:flex;align-items:center;' +
+                        f'justify-content:space-between;background:#1e293b;border-radius:10px;' +
+                        f'padding:18px 24px;text-decoration:none;">' +
+                        f'<div><div style="font-family:Playfair Display,serif;font-size:16px;' +
+                        f'color:#fff;font-weight:700;">Nota Tecnica</div>' +
+                        f'<div style="font-family:Inter,sans-serif;font-size:12px;' +
+                        f'color:#94a3b8;margin-top:4px;">Parere giuridico · Riferimenti normativi · Decisioni ABF</div>' +
+                        f'</div><span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span></a>' +
+                        f'<a href="{docx_link}" target="_blank" style="display:flex;align-items:center;' +
+                        f'justify-content:space-between;background:#1e293b;border-radius:10px;' +
+                        f'padding:18px 24px;text-decoration:none;">' +
+                        f'<div><div style="font-family:Playfair Display,serif;font-size:16px;' +
+                        f'color:#fff;font-weight:700;">Bozza di Risposta</div>' +
+                        f'<div style="font-family:Inter,sans-serif;font-size:12px;' +
+                        f'color:#94a3b8;margin-top:4px;">Documento editabile · Pronto per revisione e invio</div>' +
+                        f'</div><span style="font-size:22px;color:#3B82F6;font-weight:300;">→</span></a>' +
+                        f'</div>',
+                        unsafe_allow_html=True)
+                else:
+                    st.info("I documenti saranno disponibili al termine dell'elaborazione.")
+            with col_side:
+                sec("", "Avanzamento analisi")
+                steps = ([("✅","step-done","Reclamo ricevuto",rec['Data']),
+                          ("✅","step-done","Analisi AI completata","oggi"),
+                          ("✅","step-done","Nota tecnica generata","oggi"),
+                          ("✅","step-done","Bozza risposta generata","oggi"),
+                          ("⏳","step-pending","Valutazioni operatore","in attesa"),
+                          ("🔒","step-wait","Invio al responsabile","—")]
+                         if wf == "elaborato" else
+                         [("✅","step-done","Reclamo ricevuto",rec['Data']),
+                          ("⏳","step-pending","Analisi AI in corso","in corso..."),
+                          ("🔒","step-wait","Nota tecnica","—"),
+                          ("🔒","step-wait","Bozza risposta","—"),
+                          ("🔒","step-wait","Valutazioni operatore","—"),
+                          ("🔒","step-wait","Invio al responsabile","—")])
+                st.markdown(
+                    '<div class="sec-body">' +
+                    "".join(f'<div class="workflow-step"><div class="step-icon {cls}">{icon}</div>'
+                            f'<div><div class="step-text">{label}</div>'
+                            f'<div class="step-date">{date}</div></div></div>'
+                            for icon, cls, label, date in steps) +
+                    '</div>', unsafe_allow_html=True)
+
+                st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+                st.markdown(
+                    f'<div style="background:#f1f5f9;border-radius:8px;padding:12px 16px;">'
+                    f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                    f'color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin:0 0 4px 0;">'
+                    f'Assegnato a</p>'
+                    f'<p style="font-family:Inter,sans-serif;font-size:14px;font-weight:600;'
+                    f'color:#1e293b;margin:0;">{rec.get("Assegnato_a", "—")}</p>'
+                    f'</div>', unsafe_allow_html=True)
+
+            # ══ VALUTAZIONI DELL'OPERATORE ══
+            ruolo_corrente = st.session_state.get("ruolo", "Operatore")
+            esito_corrente = rec.get("Esito", "")
+            vista_resp     = (ruolo_corrente == "Responsabile" and
+                              esito_corrente in ["Al responsabile", "In istruttoria"])
+
+            st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)
+            st.markdown(
+                '<div style="height:3px;background:linear-gradient(90deg,#3B82F6,#1e293b);'
+                'border-radius:2px;margin-bottom:20px;"></div>',
+                unsafe_allow_html=True)
+            st.markdown(
+                '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+                'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:20px;">'
+                "Valutazioni dell\'Operatore</p>",
+                unsafe_allow_html=True)
+
+            col_val, col_act = st.columns([2, 1], gap="large")
+
+            proposta_corrente = rec.get("Proposta_decisione", "")
+            proposte          = ["Accogliere", "Rigettare", "Supplemento istruttorio"]
+            proposta_idx      = proposte.index(proposta_corrente) if proposta_corrente in proposte else 2
+            note_correnti     = rec.get("Note", "")
+            bozza_corrente    = rec.get("Bozza_modificata", "")
+
+            with col_val:
+                st.markdown(
+                    '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                    'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px 0;">'
+                    'Proposta di decisione</p>', unsafe_allow_html=True)
+                if vista_resp:
+                    _bc = {"Accogliere":"#d1fae5","Rigettare":"#fee2e2",
+                           "Supplemento istruttorio":"#fef3c7"}.get(proposta_corrente,"#e2e8f0")
+                    _tc = {"Accogliere":"#065f46","Rigettare":"#b91c1c",
+                           "Supplemento istruttorio":"#92400e"}.get(proposta_corrente,"#475569")
+                    st.markdown(
+                        f'<span style="background:{_bc};color:{_tc};font-family:Inter,sans-serif;'
+                        f'font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;">'
+                        f'{proposta_corrente or "Non compilata"}</span>',
+                        unsafe_allow_html=True)
+                    proposta_sel = proposta_corrente
+                else:
+                    proposta_sel = st.radio("Proposta", proposte, index=proposta_idx,
+                        key=f"proposta_{rec['ID']}", label_visibility="collapsed", horizontal=True)
+
+                st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+                st.markdown(
+                    '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                    'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 8px 0;">'
+                    'Note operative</p>', unsafe_allow_html=True)
+                if vista_resp:
+                    st.markdown(
+                        f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;'
+                        f'padding:12px 16px;min-height:60px;">'
+                        f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#475569;margin:0;">'
+                        f'{note_correnti or "<em>Nessuna nota</em>"}</p></div>',
+                        unsafe_allow_html=True)
+                    note_val = note_correnti
+                else:
+                    note_val = st.text_area("Note", value=note_correnti, height=100,
+                        key=f"note_{rec['ID']}", label_visibility="collapsed",
+                        placeholder="Note interne, supplemento istruttorio richiesto, osservazioni...")
+
+                st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+                st.markdown(
+                    '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                    'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 4px 0;">'
+                    'Bozza risposta modificata &nbsp;'
+                    '<span style="font-weight:400;color:#94a3b8;">'
+                    '(caricare solo se modificata rispetto alla bozza Resolva)</span></p>',
+                    unsafe_allow_html=True)
+                if vista_resp:
+                    bozza_mod = st.text_area("Bozza risposta", value=bozza_corrente,
+                        height=120, key=f"bozza_resp_{rec['ID']}", label_visibility="collapsed",
+                        placeholder="Modifica qui il testo della bozza risposta prima di inviare...")
+                else:
+                    bozza_mod = bozza_corrente
+                    uploaded = st.file_uploader("Carica bozza modificata", type=["docx","pdf"],
+                        key=f"upload_{rec['ID']}", label_visibility="collapsed")
+                    if uploaded is not None:
+                        bozza_mod = f"[file caricato: {uploaded.name}]"
+                        st.markdown(
+                            f'<div style="background:#e2e8f0;border-radius:8px;padding:10px 14px;margin-top:6px;">'
+                            f'<p style="font-family:Inter,sans-serif;font-size:12px;color:#1e293b;margin:0;">'
+                            f'📎 <strong>{uploaded.name}</strong> &nbsp;·&nbsp; '
+                            f'<span style="color:#64748b;">{round(uploaded.size/1024,1)} KB</span></p>'
+                            f'</div>',
+                            unsafe_allow_html=True)
+
+            with col_act:
+                st.markdown(
+                    '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                    'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 16px 0;">'
+                    'Azioni</p>', unsafe_allow_html=True)
+
+                valore_pratica = float(rec.get("Valore", 0) or 0)
+                soglia = 1000.0
+
+                if not vista_resp and st.button("Salva valutazioni", key=f"salva_val_{rec['ID']}",
+                             use_container_width=True):
+                    sb_update(rec["ID"], {
+                        "note": note_val,
+                        "proposta_decisione": proposta_sel,
+                        "bozza_modificata": bozza_mod
+                    })
+                    get_db.clear()
+                    st.success("Valutazioni salvate.")
+
+                st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+                # Invia al responsabile — solo per operatore
+                if not vista_resp and st.button("Invia al responsabile", key=f"resp_{rec['ID']}",
+                             use_container_width=True):
+                    esito_resp = "In istruttoria" if proposta_sel == "Supplemento istruttorio" else "Al responsabile"
+                    sb_update(rec["ID"], {
+                        "stato_workflow": "elaborato",
+                        "esito": esito_resp,
+                        "note": note_val,
+                        "proposta_decisione": proposta_sel,
+                        "bozza_modificata": bozza_mod
+                    })
+                    get_db.clear()
+                    st.success("✅ Pratica inviata al responsabile.")
+                    st.rerun()
+
+                st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+
+                # Invia risposta
+                ruolo_corrente = st.session_state.get("ruolo", "Operatore")
+                can_send = (ruolo_corrente == "Responsabile") or (valore_pratica < soglia)
+                if can_send:
+                    if st.button("Invia risposta", key=f"invia_{rec['ID']}",
+                                 use_container_width=True, type="primary"):
+                        esito_out = proposta_sel if proposta_sel in ["Accogliere","Rigettare"] else "Draft"
+                        if esito_out == "Accogliere": esito_out = "Accolto"
+                        if esito_out == "Rigettare":  esito_out = "Rigettato"
+                        from datetime import datetime as _dt
+                        sb_update(rec["ID"], {
+                            "stato": "Archiviato",
+                            "esito": esito_out,
+                            "note": note_val,
+                            "proposta_decisione": proposta_sel,
+                            "bozza_modificata": bozza_mod,
+                            "data_archiviazione": _dt.now().strftime("%d/%m/%Y")
+                        })
+                        get_db.clear()
+                        st.success("Risposta inviata. Reclamo archiviato.")
+                        st.rerun()
+                else:
+                    st.markdown(
+                        '<div style="background:#e2e8f0;border-radius:8px;padding:10px 14px;'
+                        'margin-top:2px;">'
+                        '<p style="font-family:Inter,sans-serif;font-size:11px;'
+                        'color:#475569;margin:0;">'
+                        'Invio risposta disattivato · Valore superiore a € 1.000</p>'
+                        '</div>',
+                        unsafe_allow_html=True)
