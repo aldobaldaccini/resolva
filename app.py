@@ -520,6 +520,133 @@ if st.session_state.page == "Dashboard":
 
         st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
 
+        # ══ STATISTICHE OPERATIVE ══
+        st.markdown(
+            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:16px;">'
+            'Statistiche operative</p>', unsafe_allow_html=True)
+
+        from datetime import datetime, timedelta
+        import pandas as pd
+
+        oggi = datetime.now().date()
+        filtri = {"Oggi": oggi, "Settimana": oggi - timedelta(days=7),
+                  "Mese": oggi - timedelta(days=30), "Anno": oggi - timedelta(days=365)}
+        periodo_sel = st.selectbox("Periodo", list(filtri.keys()),
+                                   key="periodo_stats", label_visibility="visible")
+        data_da = filtri[periodo_sel]
+
+        def parse_data(d):
+            try:
+                # Try DD/MM/YY format used in app
+                return datetime.strptime(str(d), "%d/%m/%y").date()
+            except:
+                try:
+                    return datetime.strptime(str(d)[:10], "%Y-%m-%d").date()
+                except:
+                    return None
+
+        if not df_all.empty:
+            df_all["_data"] = df_all["Data"].apply(parse_data)
+            df_periodo = df_all[df_all["_data"] >= data_da] if not df_all.empty else pd.DataFrame()
+        else:
+            df_periodo = pd.DataFrame()
+
+        arch_periodo  = df_periodo[df_periodo["Stato"] == "Archiviato"] if not df_periodo.empty else pd.DataFrame()
+        attivi_periodo = df_periodo[df_periodo["Stato"] == "Attivo"]    if not df_periodo.empty else pd.DataFrame()
+
+        # Breakdown archiviati: operatore vs responsabile
+        # operatore = valore < 1000, responsabile = valore >= 1000
+        arch_da_op   = arch_periodo[arch_periodo["Valore"].apply(lambda v: float(v or 0) < 1000)]  if not arch_periodo.empty else pd.DataFrame()
+        arch_da_resp = arch_periodo[arch_periodo["Valore"].apply(lambda v: float(v or 0) >= 1000)] if not arch_periodo.empty else pd.DataFrame()
+        arch_accolti  = arch_periodo[arch_periodo["Esito"] == "Accolto"]   if not arch_periodo.empty else pd.DataFrame()
+        arch_rigettati= arch_periodo[arch_periodo["Esito"] == "Rigettato"] if not arch_periodo.empty else pd.DataFrame()
+        tot_chiusi = max(len(arch_accolti) + len(arch_rigettati), 1)
+        tasso_acc_p = int(len(arch_accolti)   / tot_chiusi * 100)
+        tasso_rig_p = int(len(arch_rigettati) / tot_chiusi * 100)
+        val_accolti  = int(arch_accolti["Valore"].sum())  if not arch_accolti.empty else 0
+        val_rigettati= int(arch_rigettati["Valore"].sum()) if not arch_rigettati.empty else 0
+
+        # KPI row 1 — attivi
+        st.markdown(
+            '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+            'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:8px 0 10px 0;">'
+            'Portafoglio attivo nel periodo</p>', unsafe_allow_html=True)
+        ka1,ka2,ka3,ka4 = st.columns(4)
+
+        def kpi_sm(col, label, value, sub=""):
+            col.markdown(
+                f'<div class="kpi-card" style="background:#e2e8f0;border-radius:10px;padding:16px 20px;">'
+                f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+                f'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px 0;">{label}</p>'
+                f'<p style="font-family:Playfair Display,serif;font-size:26px;font-weight:700;'
+                f'color:#1e293b;margin:0 0 2px 0;line-height:1;">{value}</p>'
+                f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#94a3b8;margin:0;">{sub}</p>'
+                f'</div>', unsafe_allow_html=True)
+
+        n_da_ass   = len(attivi_periodo[attivi_periodo["Operatore"].isin(["Da assegnare","",None])]) if not attivi_periodo.empty else 0
+        n_ass      = len(attivi_periodo[~attivi_periodo["Operatore"].isin(["Da assegnare","",None])]) if not attivi_periodo.empty else 0
+        n_da_appr  = len(attivi_periodo[attivi_periodo["Esito"] == "Al responsabile"]) if not attivi_periodo.empty else 0
+        n_istr     = len(attivi_periodo[attivi_periodo["Esito"] == "In istruttoria"]) if not attivi_periodo.empty else 0
+
+        kpi_sm(ka1, "Da assegnare",    n_da_ass,  "in attesa")
+        kpi_sm(ka2, "In lavorazione",  n_ass,     "assegnati")
+        kpi_sm(ka3, "Da approvare",    n_da_appr, "al responsabile")
+        kpi_sm(ka4, "In istruttoria",  n_istr,    "supplemento")
+
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+        # KPI row 2 — archiviati
+        st.markdown(
+            '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+            'color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:12px 0 10px 0;">'
+            'Reclami archiviati nel periodo</p>', unsafe_allow_html=True)
+        kb1,kb2,kb3,kb4 = st.columns(4)
+        kpi_sm(kb1, "Da operatore",    len(arch_da_op),   "risposte inviate")
+        kpi_sm(kb2, "Da responsabile", len(arch_da_resp),  "risposte inviate")
+        kpi_sm(kb3, "Tasso accoglimento", f"{tasso_acc_p}%", f"€ {val_accolti:,} accolti")
+        kpi_sm(kb4, "Tasso rigetto",      f"{tasso_rig_p}%", f"€ {val_rigettati:,} rigettati")
+
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+        # Lista pratiche archiviate nel periodo
+        if not arch_periodo.empty:
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">'
+                f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
+                f'color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;">'
+                f'Pratiche archiviate — {periodo_sel.lower()}</span>'
+                f'<span style="background:#1e293b;color:white;font-family:Inter,sans-serif;'
+                f'font-size:11px;font-weight:700;border-radius:50%;width:22px;height:22px;'
+                f'display:inline-flex;align-items:center;justify-content:center;">'
+                f'{len(arch_periodo)}</span></div>',
+                unsafe_allow_html=True)
+
+            col_h = st.columns([2,1,2,1,1,0.7])
+            for h_col, h_txt in zip(col_h, ["ID","Data","Cliente","Valore","Esito",""]):
+                h_col.markdown(
+                    f'<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
+                    f'color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;">{h_txt}</span>',
+                    unsafe_allow_html=True)
+            st.markdown('<hr style="margin:4px 0 0 0;border:none;border-top:2px solid #1e293b;">', unsafe_allow_html=True)
+
+            for _, row in arch_periodo.iterrows():
+                c1,c2,c3,c4,c5,c6 = st.columns([2,1,2,1,1,0.7])
+                c1.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:#1e293b;">{row["ID"]}</span></div>', unsafe_allow_html=True)
+                c2.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">{row["Data"]}</span></div>', unsafe_allow_html=True)
+                c3.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#1e293b;">{row["Cliente"]}</span></div>', unsafe_allow_html=True)
+                c4.markdown(f'<div style="background:white;padding:10px 0;"><span style="font-family:Inter,sans-serif;font-size:13px;color:#475569;">€ {int(row["Valore"]):,}</span></div>', unsafe_allow_html=True)
+                c5.markdown(f'<div style="background:white;padding:8px 0;">{badge(row["Esito"])}</div>', unsafe_allow_html=True)
+                if c6.button("→", key=f"arch_op_{row['ID']}"):
+                    st.session_state.id_selezionato = row["ID"]
+                    st.session_state.page = "Dettaglio pratica"
+                    st.rerun()
+                st.markdown('<hr style="margin:0;border:none;border-top:1px solid #f1f5f9;">', unsafe_allow_html=True)
+        else:
+            st.info(f"Nessuna pratica archiviata nel periodo selezionato.")
+
+        st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
+
         # ══ STATISTICHE (in fondo) ══
         st.markdown(
             '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
