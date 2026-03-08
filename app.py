@@ -145,12 +145,12 @@ div[data-testid="stSidebar"] .stTextInput input {
 .col-id { font-weight:700; color:#0f172a; white-space:nowrap; }
 .col-val { white-space:nowrap; font-variant-numeric:tabular-nums; }
 .badge { display:inline-block; padding:4px 11px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; }
-.badge-accolto   { background:#dcfce7; color:#15803d; }
-.badge-istruttoria { background:#fef3c7; color:#92400e; }
-.badge-istruttoria { background:#fef3c7; color:#92400e; }
-.badge-rigettato { background:#fee2e2; color:#b91c1c; }
-.badge-analisi   { background:#e2e8f0; color:#475569; }
-.badge-draft     { background:#1e293b; color:#ffffff; }
+.badge-accolto       { background:#dcfce7; color:#15803d; }
+.badge-rigettato     { background:#fee2e2; color:#b91c1c; }
+.badge-analisi       { background:#dcfce7; color:#166534; }
+.badge-draft         { background:#86efac; color:#14532d; }
+.badge-responsabile  { background:#16a34a; color:#ffffff; }
+.badge-istruttoria   { background:#fef9c3; color:#854d0e; }
 
 .fascicolo-header { background:#1e293b; border-radius:10px; padding:24px 32px; margin-bottom:20px;
     display:flex; align-items:center; justify-content:space-between; }
@@ -168,6 +168,7 @@ div[data-testid="stSidebar"] .stTextInput input {
 .sec-header.amber {}
 .sec-header.red {}
 .sec-header.blue .sec-title { color:#3B82F6; }
+.sec-header.bordeaux .sec-title { color:#6B1F3A; }
 .sec-icon { display:none; }
 .sec-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:700;
     text-transform:uppercase; letter-spacing:.18em; color:#1e293b; }
@@ -263,10 +264,13 @@ if not st.session_state.logged_in:
 OPERATORI = ["M. Rossi", "E. Verdi", "F. Bruno", "C. Marino"]
 
 def badge(esito):
+    labels = {"In analisi":"Resolva Processing","Draft":"Human Review",
+              "Al responsabile":"Pending Approval","In istruttoria":"On Hold"}
+    display = labels.get(esito, esito)
     cls = {"In analisi":"badge-analisi","Draft":"badge-draft",
            "Rigettato":"badge-rigettato","Accolto":"badge-accolto",
            "Al responsabile":"badge-responsabile","In istruttoria":"badge-istruttoria"}.get(esito,"")
-    return f'<span class="badge {cls}">{esito}</span>'
+    return f'<span class="badge {cls}">{display}</span>'
 
 def get_rec(id_, db):
     for r in db:
@@ -936,7 +940,7 @@ elif st.session_state.page == "Dettaglio pratica":
                 import re
 
                 # ── SINTESI DEL RECLAMO ──
-                sec("", "Sintesi del reclamo")
+                sec("", "Il reclamo del cliente")
                 sintesi_src = rec.get("Sintesi_reclamo") or rec.get("Sintesi_AI") or ""
                 if wf == "elaborato" and sintesi_src:
                     sintesi_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', sintesi_src)
@@ -966,7 +970,7 @@ elif st.session_state.page == "Dettaglio pratica":
                     unsafe_allow_html=True)
 
                 # ── ANALISI RESOLVA ──
-                sec("", "Analisi Resolva")
+                sec("", "Resolva", "bordeaux")
 
                 # Sintesi dell'analisi — primo elemento, stesso stile titolo sezione
                 sintesi_analisi = rec.get("Sintesi_analisi") or ""
@@ -1026,7 +1030,7 @@ elif st.session_state.page == "Dettaglio pratica":
                 else:
                     st.info("I documenti saranno disponibili al termine dell'elaborazione.")
             with col_side:
-                sec("", "Avanzamento analisi")
+                sec("", "Stato della pratica")
                 steps = ([("✅","step-done","Reclamo ricevuto",rec['Data']),
                           ("✅","step-done","Analisi AI completata","oggi"),
                           ("✅","step-done","Nota tecnica generata","oggi"),
