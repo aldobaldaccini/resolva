@@ -328,6 +328,15 @@ with st.sidebar:
     if st.button("Statistiche"): st.session_state.page = "Statistiche"; st.rerun()
     st.markdown('<div style="flex:1;"></div>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+    _u = st.session_state.get("utente","")
+    _r = st.session_state.get("ruolo","")
+    st.markdown(
+        f'<div style="padding:10px 8px 4px 8px;">'
+        f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;'
+        f'color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin:0 0 2px 0;">{_r}</p>'
+        f'<p style="font-family:Inter,sans-serif;font-size:14px;font-weight:600;'
+        f'color:#e2e8f0;margin:0;">{_u}</p>'
+        f'</div>', unsafe_allow_html=True)
     if st.button("Esci", key="logout"):
         st.session_state.logged_in = False
         st.session_state.utente = ""
@@ -768,7 +777,7 @@ if st.session_state.page == "Dashboard":
 
 elif st.session_state.page == "Reclami attivi":
     _ruolo_ra = st.session_state.get("ruolo", "")
-    _nome_ra  = st.session_state.get("nome", "")
+    _nome_ra  = st.session_state.get("utente", "")
     if _ruolo_ra == "Operatore":
         data_all = df[(df['Stato'] == "Attivo") & (df['Operatore'] == _nome_ra)].reset_index(drop=True)
     else:
