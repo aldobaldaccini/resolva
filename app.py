@@ -412,7 +412,7 @@ if st.session_state.page == "Dashboard":
             '<div style="margin:4px 0 28px 0;">'
             '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -449,17 +449,24 @@ if st.session_state.page == "Dashboard":
             '<div style="margin:28px 0 24px 0;">'
             '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
         # ══ TASK 2: PRATICHE DA ASSEGNARE ══
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">'
             f'<span style="font-family:Playfair Display,serif;font-size:19px;font-weight:700;'
-            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pratiche da assegnare</span>'
-            f'<span style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:26px;height:26px;display:inline-flex;'
+            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Reclami</span>'
+            f'</div>',
+            unsafe_allow_html=True)
+
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'
+            f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:600;'
+            f'text-transform:uppercase;letter-spacing:.12em;color:#475569;">In attesa di assegnazione</span>'
+            f'<span style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:11px;'
+            f'font-weight:700;border-radius:50%;width:22px;height:22px;display:inline-flex;'
             f'align-items:center;justify-content:center;">{len(da_assegnare)}</span></div>',
             unsafe_allow_html=True)
 
@@ -483,15 +490,19 @@ if st.session_state.page == "Dashboard":
                     get_db.clear()
                     st.rerun()
 
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+        st.markdown(
+            '<div style="margin:24px 0 20px 0;">'
+            '<div style="height:1px;background:#111827;opacity:0.25;border-radius:2px;"></div>'
+            '</div>',
+            unsafe_allow_html=True)
 
         # ══ TASK 3: IN ATTESA DI APPROVAZIONE ══
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:19px;font-weight:700;'
-            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">In attesa di approvazione</span>'
-            f'<span style="background:#3B82F6;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:26px;height:26px;display:inline-flex;'
+            f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'
+            f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:600;'
+            f'text-transform:uppercase;letter-spacing:.12em;color:#475569;">In attesa di approvazione</span>'
+            f'<span style="background:#3B82F6;color:white;font-family:Inter,sans-serif;font-size:11px;'
+            f'font-weight:700;border-radius:50%;width:22px;height:22px;display:inline-flex;'
             f'align-items:center;justify-content:center;">{len(da_approvare)}</span></div>',
             unsafe_allow_html=True)
 
@@ -511,15 +522,19 @@ if st.session_state.page == "Dashboard":
                     st.session_state.page = "Dettaglio pratica"
                     st.rerun()
 
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+        st.markdown(
+            '<div style="margin:24px 0 20px 0;">'
+            '<div style="height:1px;background:#111827;opacity:0.25;border-radius:2px;"></div>'
+            '</div>',
+            unsafe_allow_html=True)
 
         # ══ TASK 4: SUPPLEMENTO ISTRUTTORIO ══
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:19px;font-weight:700;'
-            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Supplemento istruttorio</span>'
-            f'<span style="background:#92400e;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:26px;height:26px;display:inline-flex;'
+            f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'
+            f'<span style="font-family:Inter,sans-serif;font-size:13px;font-weight:600;'
+            f'text-transform:uppercase;letter-spacing:.12em;color:#475569;">In attesa di supplemento istruttorio</span>'
+            f'<span style="background:#92400e;color:white;font-family:Inter,sans-serif;font-size:11px;'
+            f'font-weight:700;border-radius:50%;width:22px;height:22px;display:inline-flex;'
             f'align-items:center;justify-content:center;">{len(da_istruttoria)}</span></div>',
             unsafe_allow_html=True)
 
@@ -562,7 +577,7 @@ if st.session_state.page == "Dashboard":
             '<div style="margin:28px 0 24px 0;">'
             '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -676,7 +691,7 @@ if st.session_state.page == "Dashboard":
             '<div style="margin:4px 0 28px 0;">'
             '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -726,7 +741,7 @@ if st.session_state.page == "Dashboard":
             '<div style="margin:28px 0 24px 0;">'
             '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -759,7 +774,7 @@ if st.session_state.page == "Dashboard":
             '<div style="margin:28px 0 24px 0;">'
             '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -787,7 +802,7 @@ if st.session_state.page == "Dashboard":
             '<div style="margin:28px 0 24px 0;">'
             '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
