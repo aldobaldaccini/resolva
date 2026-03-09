@@ -551,6 +551,7 @@ if st.session_state.page == "Dashboard":
         st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
 
         # ══ STATISTICHE OPERATIVE ══
+        st.markdown('<div class="dash-card">', unsafe_allow_html=True)
         st.markdown(
             '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
             'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:16px;">'
@@ -638,6 +639,7 @@ if st.session_state.page == "Dashboard":
                     f"VALORI: Accolti € {val_accolti:,} · Rigettati € {val_rigettati:,}",
                 ]
                 st.text_area("Testo report da copiare", value="\n".join(righe), height=160, key="txt_report_stats")
+        st.markdown('</div>', unsafe_allow_html=True)
         st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
 
 
