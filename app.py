@@ -408,6 +408,14 @@ if st.session_state.page == "Dashboard":
             'Dashboard · Responsabile</p>',
             unsafe_allow_html=True)
 
+        st.markdown(
+            '<div style="margin:4px 0 28px 0;">'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:3px;"></div>'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '</div>',
+            unsafe_allow_html=True)
+
         # ── CSS pulsanti rossi ──
         st.markdown("""<style>
         /* hover azzurro sulle card statistiche e PEC */
@@ -438,7 +446,11 @@ if st.session_state.page == "Dashboard":
                 st.toast("Sincronizzazione PEC disponibile nella versione completa")
 
         st.markdown(
-            '<hr style="border:none;border-top:1px solid #94a3b8;margin:28px 0 24px 0;">',
+            '<div style="margin:28px 0 24px 0;">'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:3px;"></div>'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '</div>',
             unsafe_allow_html=True)
 
         # ══ TASK 2: PRATICHE DA ASSEGNARE ══
@@ -547,7 +559,11 @@ if st.session_state.page == "Dashboard":
                         st.warning("Inserire il destinatario prima di inviare.")
 
         st.markdown(
-            '<hr style="border:none;border-top:1px solid #94a3b8;margin:28px 0 24px 0;">',
+            '<div style="margin:28px 0 24px 0;">'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:3px;"></div>'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '</div>',
             unsafe_allow_html=True)
 
                 # ══ STATISTICHE OPERATIVE ══
@@ -656,6 +672,14 @@ if st.session_state.page == "Dashboard":
             f'Benvenuto, <strong>{nome_op}</strong></p>',
             unsafe_allow_html=True)
 
+        st.markdown(
+            '<div style="margin:4px 0 28px 0;">'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:3px;"></div>'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '</div>',
+            unsafe_allow_html=True)
+
         # ── Filtra per operatore corrente ──
         mie_pratiche = attivi_df[attivi_df["Operatore"] == nome_op] if not attivi_df.empty else pd.DataFrame()
 
@@ -699,7 +723,11 @@ if st.session_state.page == "Dashboard":
         kpi_op(p3, "Da lavorare oggi",   n_review,     "Human Review",       "#f1f5f9")
 
         st.markdown(
-            '<hr style="border:none;border-top:1px solid #94a3b8;margin:28px 0 24px 0;">',
+            '<div style="margin:28px 0 24px 0;">'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:3px;"></div>'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '</div>',
             unsafe_allow_html=True)
 
         # ── TASK 1: Human Review ──
@@ -728,7 +756,11 @@ if st.session_state.page == "Dashboard":
                     st.rerun()
 
         st.markdown(
-            '<hr style="border:none;border-top:1px solid #94a3b8;margin:28px 0 24px 0;">',
+            '<div style="margin:28px 0 24px 0;">'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:3px;"></div>'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '</div>',
             unsafe_allow_html=True)
 
         # ── TASK 2: Pending Approval ──
@@ -752,7 +784,11 @@ if st.session_state.page == "Dashboard":
                 + '</div>', unsafe_allow_html=True)
 
         st.markdown(
-            '<hr style="border:none;border-top:1px solid #94a3b8;margin:28px 0 24px 0;">',
+            '<div style="margin:28px 0 24px 0;">'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:3px;"></div>'
+            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '</div>',
             unsafe_allow_html=True)
 
         # ── TASK 3: On Hold ──
