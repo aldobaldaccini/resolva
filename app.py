@@ -453,118 +453,115 @@ if st.session_state.page == "Dashboard":
 
         # ══ TASK 2+3+4: GESTIONE PRATICHE ══
         with st.container(border=True):
-         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pratiche da assegnare</span>'
-            f'<span style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
-            f'align-items:center;justify-content:center;">{len(da_assegnare)}</span></div>',
-            unsafe_allow_html=True)
 
-        if da_assegnare.empty:
-            st.info("Nessuna pratica da assegnare.")
-        else:
-            col_pratica, col_operatore = st.columns([3, 2])
-            with col_pratica:
-                labels_ass = [
-                    f"{r['ID']}  ·  {r['Cliente']}  ·  € {int(r['Valore']):,}"
-                    for _, r in da_assegnare.iterrows()
-                ]
-                pratica_label = st.selectbox("Pratica da assegnare", labels_ass, label_visibility="visible")
-                pratica_id = da_assegnare.iloc[labels_ass.index(pratica_label)]["ID"]
-            with col_operatore:
-                op_scelto = st.selectbox("Assegna a", OPERATORI, label_visibility="visible")
+            # PRATICHE DA ASSEGNARE
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+                f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+                f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pratiche da assegnare</span>'
+                f'<span style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:12px;'
+                f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+                f'align-items:center;justify-content:center;">{len(da_assegnare)}</span></div>',
+                unsafe_allow_html=True)
 
-            _, btn_ass = st.columns([4, 1])
-            with btn_ass:
-                if st.button("Assegna", use_container_width=True, key="assegna_main", type="primary"):
-                    sb_update(pratica_id, {"operatore": op_scelto, "assegnato_a": op_scelto})
-                    get_db.clear()
-                    st.rerun()
-    
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
-
-        # ══ TASK 3: IN ATTESA DI APPROVAZIONE ══
-        st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">In attesa di approvazione</span>'
-            f'<span style="background:#3B82F6;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
-            f'align-items:center;justify-content:center;">{len(da_approvare)}</span></div>',
-            unsafe_allow_html=True)
-
-        if da_approvare.empty:
-            st.info("Nessuna pratica in attesa di approvazione.")
-        else:
-            labels_appr = [
-                f"{r['ID']}  ·  {r['Cliente']}  ·  € {int(r['Valore']):,}"
-                for _, r in da_approvare.iterrows()
-            ]
-            appr_label = st.selectbox("Seleziona pratica da revisionare", labels_appr, label_visibility="visible")
-            appr_id = da_approvare.iloc[labels_appr.index(appr_label)]["ID"]
-
-            _, btn_appr = st.columns([4, 1])
-            with btn_appr:
-                if st.button("Apri", use_container_width=True, key="apri_appr", type="primary"):
-                    st.session_state.id_selezionato = appr_id
-                    st.session_state.page = "Dettaglio pratica"
-                    st.rerun()
-    
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
-
-        # ══ TASK 4: SUPPLEMENTO ISTRUTTORIO ══
-        st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Supplemento istruttorio</span>'
-            f'<span style="background:#92400e;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
-            f'align-items:center;justify-content:center;">{len(da_istruttoria)}</span></div>',
-            unsafe_allow_html=True)
-
-        if da_istruttoria.empty:
-            st.info("Nessuna pratica in supplemento istruttorio.")
-        else:
-            labels_istr = [
-                f"{r['ID']}  ·  {r['Cliente']}  ·  {r.get('Note','') or 'nessuna nota'}"
-                for _, r in da_istruttoria.iterrows()
-            ]
-            istr_label = st.selectbox("Pratica in istruttoria", labels_istr, label_visibility="visible")
-            istr_id    = da_istruttoria.iloc[labels_istr.index(istr_label)]["ID"]
-            istr_note  = da_istruttoria.iloc[labels_istr.index(istr_label)].get("Note", "") or ""
-
-            if istr_note:
-                st.markdown(
-                    f'<div style="background:#fef3c7;border-radius:8px;padding:10px 16px;margin:8px 0;">'
-                    f'<p style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
-                    f'color:#92400e;text-transform:uppercase;letter-spacing:.08em;margin:0 0 4px 0;">'
-                    f'Supplemento richiesto</p>'
-                    f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#78350f;margin:0;">'
-                    f'{istr_note}</p></div>',
-                    unsafe_allow_html=True)
-
-            destinatario = st.text_input("Destinatario / Unità competente",
-                placeholder="es. Ufficio tassi, Ufficio titoli, Compliance...",
-                key=f"dest_istr_{istr_id}")
-
-            _, btn_istr = st.columns([4, 1])
-            with btn_istr:
-                if st.button("Invia supplemento", use_container_width=True,
-                             key="invia_istr", type="primary"):
-                    if destinatario:
-                        sb_update(istr_id, {"esito": "In istruttoria",
-                                            "stato_workflow": "istruttoria_inviata"})
+            if da_assegnare.empty:
+                st.info("Nessuna pratica da assegnare.")
+            else:
+                col_pratica, col_operatore = st.columns([3, 2])
+                with col_pratica:
+                    labels_ass = [
+                        f"{r['ID']}  ·  {r['Cliente']}  ·  € {int(r['Valore']):,}"
+                        for _, r in da_assegnare.iterrows()
+                    ]
+                    pratica_label = st.selectbox("Pratica da assegnare", labels_ass, label_visibility="visible")
+                    pratica_id = da_assegnare.iloc[labels_ass.index(pratica_label)]["ID"]
+                with col_operatore:
+                    op_scelto = st.selectbox("Assegna a", OPERATORI, label_visibility="visible")
+                _, btn_ass = st.columns([4, 1])
+                with btn_ass:
+                    if st.button("Assegna", use_container_width=True, key="assegna_main", type="primary"):
+                        sb_update(pratica_id, {"operatore": op_scelto, "assegnato_a": op_scelto})
                         get_db.clear()
-                        st.toast(f"Supplemento inviato a: {destinatario}")
                         st.rerun()
-                    else:
-                        st.warning("Inserire il destinatario prima di inviare.")
 
-        st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
-        # ══ STATISTICHE OPERATIVE ══
+            # IN ATTESA DI APPROVAZIONE
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+                f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+                f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">In attesa di approvazione</span>'
+                f'<span style="background:#3B82F6;color:white;font-family:Inter,sans-serif;font-size:12px;'
+                f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+                f'align-items:center;justify-content:center;">{len(da_approvare)}</span></div>',
+                unsafe_allow_html=True)
+
+            if da_approvare.empty:
+                st.info("Nessuna pratica in attesa di approvazione.")
+            else:
+                labels_appr = [
+                    f"{r['ID']}  ·  {r['Cliente']}  ·  € {int(r['Valore']):,}"
+                    for _, r in da_approvare.iterrows()
+                ]
+                appr_label = st.selectbox("Seleziona pratica da revisionare", labels_appr, label_visibility="visible")
+                appr_id = da_approvare.iloc[labels_appr.index(appr_label)]["ID"]
+                _, btn_appr = st.columns([4, 1])
+                with btn_appr:
+                    if st.button("Apri", use_container_width=True, key="apri_appr", type="primary"):
+                        st.session_state.id_selezionato = appr_id
+                        st.session_state.page = "Dettaglio pratica"
+                        st.rerun()
+
+            st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+            # SUPPLEMENTO ISTRUTTORIO
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+                f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+                f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Supplemento istruttorio</span>'
+                f'<span style="background:#92400e;color:white;font-family:Inter,sans-serif;font-size:12px;'
+                f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+                f'align-items:center;justify-content:center;">{len(da_istruttoria)}</span></div>',
+                unsafe_allow_html=True)
+
+            if da_istruttoria.empty:
+                st.info("Nessuna pratica in supplemento istruttorio.")
+            else:
+                labels_istr = [
+                    f"{r['ID']}  ·  {r['Cliente']}  ·  {r.get('Note','') or 'nessuna nota'}"
+                    for _, r in da_istruttoria.iterrows()
+                ]
+                istr_label = st.selectbox("Pratica in istruttoria", labels_istr, label_visibility="visible")
+                istr_id    = da_istruttoria.iloc[labels_istr.index(istr_label)]["ID"]
+                istr_note  = da_istruttoria.iloc[labels_istr.index(istr_label)].get("Note", "") or ""
+                if istr_note:
+                    st.markdown(
+                        f'<div style="background:#fef3c7;border-radius:8px;padding:10px 16px;margin:8px 0;">'
+                        f'<p style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
+                        f'color:#92400e;text-transform:uppercase;letter-spacing:.08em;margin:0 0 4px 0;">'
+                        f'Supplemento richiesto</p>'
+                        f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#78350f;margin:0;">'
+                        f'{istr_note}</p></div>',
+                        unsafe_allow_html=True)
+                destinatario = st.text_input("Destinatario / Unità competente",
+                    placeholder="es. Ufficio tassi, Ufficio titoli, Compliance...",
+                    key=f"dest_istr_{istr_id}")
+                _, btn_istr = st.columns([4, 1])
+                with btn_istr:
+                    if st.button("Invia supplemento", use_container_width=True,
+                                 key="invia_istr", type="primary"):
+                        if destinatario:
+                            sb_update(istr_id, {"esito": "In istruttoria",
+                                                "stato_workflow": "istruttoria_inviata"})
+                            get_db.clear()
+                            st.toast(f"Supplemento inviato a {destinatario}")
+                            st.rerun()
+                        else:
+                            st.warning("Inserire il destinatario prima di inviare.")
+
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+                # ══ STATISTICHE OPERATIVE ══
         with st.container(border=True):
          st.markdown(
             '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
