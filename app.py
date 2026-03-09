@@ -422,8 +422,8 @@ if st.session_state.page == "Dashboard":
 
         # ══ TASK 1: SINCRONIZZA PEC ══
         st.markdown(
-            '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:12px;">'
+            '<p style="font-family:Playfair Display,serif;font-size:19px;font-weight:700;'
+            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:16px;">'
             'Sincronizzazione PEC</p>', unsafe_allow_html=True)
         st.markdown(
             '<div class="pec-card" style="background:#e2e8f0;border-radius:10px;padding:20px 24px;margin-bottom:28px;">'
@@ -437,15 +437,17 @@ if st.session_state.page == "Dashboard":
             if st.button("Sincronizza", use_container_width=True, type="primary"):
                 st.toast("Sincronizzazione PEC disponibile nella versione completa")
 
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+        st.markdown(
+            '<hr style="border:none;border-top:1px solid #94a3b8;margin:28px 0 24px 0;">',
+            unsafe_allow_html=True)
 
         # ══ TASK 2: PRATICHE DA ASSEGNARE ══
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:19px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pratiche da assegnare</span>'
             f'<span style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'font-weight:700;border-radius:50%;width:26px;height:26px;display:inline-flex;'
             f'align-items:center;justify-content:center;">{len(da_assegnare)}</span></div>',
             unsafe_allow_html=True)
 
@@ -473,11 +475,11 @@ if st.session_state.page == "Dashboard":
 
         # ══ TASK 3: IN ATTESA DI APPROVAZIONE ══
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:19px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">In attesa di approvazione</span>'
             f'<span style="background:#3B82F6;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'font-weight:700;border-radius:50%;width:26px;height:26px;display:inline-flex;'
             f'align-items:center;justify-content:center;">{len(da_approvare)}</span></div>',
             unsafe_allow_html=True)
 
@@ -501,11 +503,11 @@ if st.session_state.page == "Dashboard":
 
         # ══ TASK 4: SUPPLEMENTO ISTRUTTORIO ══
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:19px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Supplemento istruttorio</span>'
             f'<span style="background:#92400e;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'font-weight:700;border-radius:50%;width:26px;height:26px;display:inline-flex;'
             f'align-items:center;justify-content:center;">{len(da_istruttoria)}</span></div>',
             unsafe_allow_html=True)
 
@@ -544,7 +546,9 @@ if st.session_state.page == "Dashboard":
                     else:
                         st.warning("Inserire il destinatario prima di inviare.")
 
-        st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
+        st.markdown(
+            '<hr style="border:none;border-top:1px solid #94a3b8;margin:28px 0 24px 0;">',
+            unsafe_allow_html=True)
 
                 # ══ STATISTICHE OPERATIVE ══
         st.markdown(
@@ -694,16 +698,18 @@ if st.session_state.page == "Dashboard":
         kpi_op(p2, "Chiuse",             n_chiuse_mese,"totale archiviate",  "#f1f5f9")
         kpi_op(p3, "Da lavorare oggi",   n_review,     "Human Review",       "#f1f5f9")
 
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+        st.markdown(
+            '<hr style="border:none;border-top:1px solid #94a3b8;margin:28px 0 24px 0;">',
+            unsafe_allow_html=True)
 
         # ── TASK 1: Human Review ──
         hr_pratiche = mie_pratiche[mie_pratiche["Esito"] == "Draft"] if not mie_pratiche.empty else pd.DataFrame()
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:19px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Human Review</span>'
             f'<span style="background:#16a34a;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'font-weight:700;border-radius:50%;width:26px;height:26px;display:inline-flex;'
             f'align-items:center;justify-content:center;">{len(hr_pratiche)}</span></div>',
             unsafe_allow_html=True)
 
@@ -721,16 +727,18 @@ if st.session_state.page == "Dashboard":
                     st.session_state.back_page = "Dashboard"
                     st.rerun()
 
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+        st.markdown(
+            '<hr style="border:none;border-top:1px solid #94a3b8;margin:28px 0 24px 0;">',
+            unsafe_allow_html=True)
 
         # ── TASK 2: Pending Approval ──
         pa_pratiche = mie_pratiche[mie_pratiche["Esito"] == "Al responsabile"] if not mie_pratiche.empty else pd.DataFrame()
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:19px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pending Approval</span>'
             f'<span style="background:#3B82F6;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'font-weight:700;border-radius:50%;width:26px;height:26px;display:inline-flex;'
             f'align-items:center;justify-content:center;">{len(pa_pratiche)}</span></div>',
             unsafe_allow_html=True)
 
@@ -743,16 +751,18 @@ if st.session_state.page == "Dashboard":
                 + "".join([f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#1e40af;margin:4px 0;">{l}</p>' for l in labels_pa])
                 + '</div>', unsafe_allow_html=True)
 
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+        st.markdown(
+            '<hr style="border:none;border-top:1px solid #94a3b8;margin:28px 0 24px 0;">',
+            unsafe_allow_html=True)
 
         # ── TASK 3: On Hold ──
         oh_pratiche = mie_pratiche[mie_pratiche["Esito"] == "In istruttoria"] if not mie_pratiche.empty else pd.DataFrame()
         st.markdown(
-            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
-            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:19px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">On Hold</span>'
             f'<span style="background:#d97706;color:white;font-family:Inter,sans-serif;font-size:12px;'
-            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'font-weight:700;border-radius:50%;width:26px;height:26px;display:inline-flex;'
             f'align-items:center;justify-content:center;">{len(oh_pratiche)}</span></div>',
             unsafe_allow_html=True)
 
