@@ -422,10 +422,9 @@ if st.session_state.page == "Dashboard":
 
         # ══ TASK 1: SINCRONIZZA PEC ══
         st.markdown(
-            '<div style="border-top:4px solid #3B82F6;border-radius:2px;margin-bottom:20px;padding-top:16px;">'
             '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
-            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin:0;">'
-            'Sincronizzazione PEC</p></div>', unsafe_allow_html=True)
+            'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:12px;">'
+            'Sincronizzazione PEC</p>', unsafe_allow_html=True)
         st.markdown(
             '<div class="pec-card" style="background:#e2e8f0;border-radius:10px;padding:20px 24px;margin-bottom:28px;">'
             '<p style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#64748b;'
@@ -442,14 +441,12 @@ if st.session_state.page == "Dashboard":
 
         # ══ TASK 2: PRATICHE DA ASSEGNARE ══
         st.markdown(
-            f'<div style="border-top:4px solid #f59e0b;border-radius:2px;margin-bottom:20px;padding-top:16px;">'
-            f'<div style="display:flex;align-items:center;gap:12px;">'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
             f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pratiche da assegnare</span>'
             f'<span style="background:#f59e0b;color:white;font-family:Inter,sans-serif;font-size:12px;'
             f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
-            f'align-items:center;justify-content:center;">{len(da_assegnare)}</span>'
-            f'</div></div>',
+            f'align-items:center;justify-content:center;">{len(da_assegnare)}</span></div>',
             unsafe_allow_html=True)
 
         if da_assegnare.empty:
@@ -476,14 +473,12 @@ if st.session_state.page == "Dashboard":
 
         # ══ TASK 3: IN ATTESA DI APPROVAZIONE ══
         st.markdown(
-            f'<div style="border-top:4px solid #3B82F6;border-radius:2px;margin-bottom:20px;padding-top:16px;">'
-            f'<div style="display:flex;align-items:center;gap:12px;">'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
             f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">In attesa di approvazione</span>'
             f'<span style="background:#3B82F6;color:white;font-family:Inter,sans-serif;font-size:12px;'
             f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
-            f'align-items:center;justify-content:center;">{len(da_approvare)}</span>'
-            f'</div></div>',
+            f'align-items:center;justify-content:center;">{len(da_approvare)}</span></div>',
             unsafe_allow_html=True)
 
         if da_approvare.empty:
@@ -506,14 +501,12 @@ if st.session_state.page == "Dashboard":
 
         # ══ TASK 4: SUPPLEMENTO ISTRUTTORIO ══
         st.markdown(
-            f'<div style="border-top:4px solid #92400e;border-radius:2px;margin-bottom:20px;padding-top:16px;">'
-            f'<div style="display:flex;align-items:center;gap:12px;">'
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
             f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Supplemento istruttorio</span>'
             f'<span style="background:#92400e;color:white;font-family:Inter,sans-serif;font-size:12px;'
             f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
-            f'align-items:center;justify-content:center;">{len(da_istruttoria)}</span>'
-            f'</div></div>',
+            f'align-items:center;justify-content:center;">{len(da_istruttoria)}</span></div>',
             unsafe_allow_html=True)
 
         if da_istruttoria.empty:
