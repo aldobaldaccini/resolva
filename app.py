@@ -352,9 +352,10 @@ if search_query and not df.empty:
 # 0. DASHBOARD
 # ============================================================
 st.markdown(
-    '<div class="resolva-watermark">'
-    '<span class="wm-re">R E</span>'
-    '<span class="wm-solva">&nbsp;&nbsp;S O L V A</span>'
+    '<div style="position:fixed;top:16px;right:40px;z-index:9999;pointer-events:none;'  
+    'font-family:Playfair Display,serif;font-size:17px;letter-spacing:6px;">'
+    '<span style="color:#7B9CC4;opacity:0.5;">R E</span>'
+    '<span style="color:#94a3b8;opacity:0.3;">&nbsp;&nbsp;S O L V A</span>'
     '</div>', unsafe_allow_html=True)
 
 if st.session_state.page == "Dashboard":
@@ -635,7 +636,7 @@ if st.session_state.page == "Dashboard":
         # ══════════════════════════════════════════════
         # DASHBOARD OPERATORE
         # ══════════════════════════════════════════════
-        nome_op = st.session_state.get("nome", "Operatore")
+        nome_op = st.session_state.get("utente", "Operatore")
 
         st.markdown(
             f'<p style="font-family:Playfair Display,serif;font-size:26px;font-weight:700;'
