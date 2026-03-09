@@ -417,16 +417,20 @@ if st.session_state.page == "Dashboard":
             transform: translateY(-2px); }
         /* hover azzurro selettori */
         div[data-baseweb="select"] > div:hover { border-color:#3B82F6 !important; }
+        [data-testid="stVerticalBlockBorderWrapper"],
+        [data-testid="stVerticalBlockBorderWrapper"] > div,
+        [data-testid="stVerticalBlockBorderWrapper"] > div > div {
+            background: #ffffff !important;
+        }
         [data-testid="stVerticalBlockBorderWrapper"] {
-            background: white !important;
             border-radius: 14px !important;
-            border: 1px solid rgba(203,213,225,0.7) !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06) !important;
+            border: 1px solid rgba(203,213,225,0.8) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07) !important;
             transition: box-shadow 0.2s, transform 0.15s !important;
             padding: 8px 4px !important;
         }
         [data-testid="stVerticalBlockBorderWrapper"]:hover {
-            box-shadow: 0 6px 24px rgba(59,130,246,0.15) !important;
+            box-shadow: 0 6px 24px rgba(59,130,246,0.18) !important;
             transform: translateY(-2px) !important;
         }
         </style>""", unsafe_allow_html=True)
