@@ -410,9 +410,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:4px 0 28px 0;">'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -425,6 +425,7 @@ if st.session_state.page == "Dashboard":
             transform: translateY(-2px); }
         /* hover azzurro selettori */
         div[data-baseweb="select"] > div:hover { border-color:#3B82F6 !important; }
+        div[data-baseweb="select"] > div { background-color:#e2e8f0 !important; border-color:#cbd5e1 !important; }
 
         </style>""", unsafe_allow_html=True)
 
@@ -447,9 +448,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:28px 0 24px 0;">'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -540,15 +541,6 @@ if st.session_state.page == "Dashboard":
             istr_label = st.selectbox("Pratica in istruttoria", labels_istr, label_visibility="visible")
             istr_id    = da_istruttoria.iloc[labels_istr.index(istr_label)]["ID"]
             istr_note  = da_istruttoria.iloc[labels_istr.index(istr_label)].get("Note", "") or ""
-            if istr_note:
-                st.markdown(
-                    f'<div style="background:#fef3c7;border-radius:8px;padding:10px 16px;margin:8px 0;">'
-                    f'<p style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;'
-                    f'color:#92400e;text-transform:uppercase;letter-spacing:.08em;margin:0 0 4px 0;">'
-                    f'Supplemento richiesto</p>'
-                    f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#78350f;margin:0;">'
-                    f'{istr_note}</p></div>',
-                    unsafe_allow_html=True)
             destinatario = st.text_input("Destinatario / Unità competente",
                 placeholder="es. Ufficio tassi, Ufficio titoli, Compliance...",
                 key=f"dest_istr_{istr_id}")
@@ -567,9 +559,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:28px 0 24px 0;">'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -681,9 +673,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:4px 0 28px 0;">'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -731,9 +723,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:28px 0 24px 0;">'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -764,9 +756,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:28px 0 24px 0;">'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -792,9 +784,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:28px 0 24px 0;">'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#e2e8f0;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
