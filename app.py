@@ -417,29 +417,43 @@ if st.session_state.page == "Dashboard":
             transform: translateY(-2px); }
         /* hover azzurro selettori */
         div[data-baseweb="select"] > div:hover { border-color:#3B82F6 !important; }
+        [data-testid="stVerticalBlockBorderWrapper"] {
+            background: white !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(203,213,225,0.7) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06) !important;
+            transition: box-shadow 0.2s, transform 0.15s !important;
+            padding: 8px 4px !important;
+        }
+        [data-testid="stVerticalBlockBorderWrapper"]:hover {
+            box-shadow: 0 6px 24px rgba(59,130,246,0.15) !important;
+            transform: translateY(-2px) !important;
+        }
         </style>""", unsafe_allow_html=True)
 
         # ══ TASK 1: SINCRONIZZA PEC ══
-        st.markdown(
+        with st.container(border=True):
+          st.markdown(
             '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
             'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:12px;">'
             'Sincronizzazione PEC</p>', unsafe_allow_html=True)
-        st.markdown(
+          st.markdown(
             '<div class="pec-card" style="background:#e2e8f0;border-radius:10px;padding:20px 24px;margin-bottom:28px;">'
             '<p style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#64748b;'
             'text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px 0;">Ultima sincronizzazione</p>'
             '<p style="font-family:Playfair Display,serif;font-size:20px;font-weight:700;'
             'color:#1e293b;margin:0;">06/03/2026 &nbsp;·&nbsp; 08:45</p>'
             '</div>', unsafe_allow_html=True)
-        _, pec_btn = st.columns([4,1])
-        with pec_btn:
+          _, pec_btn = st.columns([4,1])
+          with pec_btn:
             if st.button("Sincronizza", use_container_width=True, type="primary"):
                 st.toast("Sincronizzazione PEC disponibile nella versione completa")
 
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
 
-        # ══ TASK 2: PRATICHE DA ASSEGNARE ══
-        st.markdown(
+        # ══ TASK 2+3+4: GESTIONE PRATICHE ══
+        with st.container(border=True):
+         st.markdown(
             f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
             f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
             f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pratiche da assegnare</span>'
@@ -551,8 +565,8 @@ if st.session_state.page == "Dashboard":
         st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
 
         # ══ STATISTICHE OPERATIVE ══
-        st.markdown('<div class="dash-card">', unsafe_allow_html=True)
-        st.markdown(
+        with st.container(border=True):
+         st.markdown(
             '<p style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
             'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:16px;">'
             'Statistiche operative</p>', unsafe_allow_html=True)
