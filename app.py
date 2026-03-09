@@ -311,7 +311,7 @@ st.markdown(f"""
 
 # ── SIDEBAR ──
 with st.sidebar:
-    st.markdown('<p class="brand-title"><span style="color:#3B82F6;letter-spacing:4px">R E</span><span style="letter-spacing:4px"> &nbsp;S O L V A</span></p><p class="brand-subtitle">Gestione reclami</p>',
+    st.markdown('<p class="brand-title"><span style="color:#7B9CC4;letter-spacing:4px">R E</span><span style="color:rgba(255,255,255,0.25);letter-spacing:4px"> &nbsp;S O L V A</span></p><p class="brand-subtitle">Gestione reclami</p>',
                 unsafe_allow_html=True)
     if st.button("Dashboard"): st.session_state.page = "Dashboard"; st.rerun()
     st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
@@ -620,6 +620,140 @@ if st.session_state.page == "Dashboard":
                 st.text_area("Testo report da copiare", value="\n".join(righe), height=160, key="txt_report_stats")
         st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
 
+
+    else:
+        # ══════════════════════════════════════════════
+        # DASHBOARD OPERATORE
+        # ══════════════════════════════════════════════
+        nome_op = st.session_state.get("nome", "Operatore")
+
+        st.markdown(
+            f'<p style="font-family:Playfair Display,serif;font-size:26px;font-weight:700;'
+            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;margin-bottom:4px;">'
+            f'Dashboard · Operatore</p>'
+            f'<p style="font-family:Inter,sans-serif;font-size:14px;color:#64748b;margin-bottom:28px;">'
+            f'Benvenuto, <strong>{nome_op}</strong></p>',
+            unsafe_allow_html=True)
+
+        # ── Filtra per operatore corrente ──
+        mie_pratiche = attivi_df[attivi_df["Operatore"] == nome_op] if not attivi_df.empty else pd.DataFrame()
+
+        n_processing  = len(mie_pratiche[mie_pratiche["Esito"] == "In analisi"])   if not mie_pratiche.empty else 0
+        n_review      = len(mie_pratiche[mie_pratiche["Esito"] == "Draft"])         if not mie_pratiche.empty else 0
+        n_approval    = len(mie_pratiche[mie_pratiche["Esito"] == "Al responsabile"]) if not mie_pratiche.empty else 0
+        n_onhold      = len(mie_pratiche[mie_pratiche["Esito"] == "In istruttoria"]) if not mie_pratiche.empty else 0
+        n_totali      = len(mie_pratiche)
+        mie_arch      = archiviati_df[archiviati_df["Operatore"] == nome_op] if not archiviati_df.empty else pd.DataFrame()
+        n_chiuse_mese = len(mie_arch)
+
+        # ── KPI row ──
+        k1,k2,k3,k4 = st.columns(4)
+        def kpi_op(col, label, val, sub, bg, col_val="#1e293b"):
+            col.markdown(
+                f'<div class="kpi-card" style="background:{bg};border-radius:10px;padding:16px 20px;'
+                f'box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center;">'
+                f'<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;color:#64748b;'
+                f'text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px 0;">{label}</p>'
+                f'<p style="font-family:Playfair Display,serif;font-size:32px;font-weight:700;'
+                f'color:{col_val};margin:0 0 4px 0;">{val}</p>'
+                f'<p style="font-family:Inter,sans-serif;font-size:11px;color:#94a3b8;margin:0;">{sub}</p>'
+                f'</div>',
+                unsafe_allow_html=True)
+
+        kpi_op(k1, "Resolva Processing", n_processing, "in elaborazione",  "#dcfce7")
+        kpi_op(k2, "Human Review",       n_review,     "da lavorare",       "#86efac")
+        kpi_op(k3, "Pending Approval",   n_approval,   "inviate al resp.",  "#16a34a", "#ffffff")
+        kpi_op(k4, "On Hold",            n_onhold,     "supplemento",       "#fef9c3")
+
+        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+
+        # ── KPI personali ──
+        st.markdown(
+            '<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;color:#94a3b8;'
+            'text-transform:uppercase;letter-spacing:.12em;margin:0 0 12px 0;">Il mio portafoglio</p>',
+            unsafe_allow_html=True)
+        p1, p2, p3 = st.columns(3)
+        kpi_op(p1, "Pratiche aperte",    n_totali,     "totale assegnate",   "#f1f5f9")
+        kpi_op(p2, "Chiuse",             n_chiuse_mese,"totale archiviate",  "#f1f5f9")
+        kpi_op(p3, "Da lavorare oggi",   n_review,     "Human Review",       "#f1f5f9")
+
+        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+
+        # ── TASK 1: Human Review ──
+        hr_pratiche = mie_pratiche[mie_pratiche["Esito"] == "Draft"] if not mie_pratiche.empty else pd.DataFrame()
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Human Review</span>'
+            f'<span style="background:#16a34a;color:white;font-family:Inter,sans-serif;font-size:12px;'
+            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'align-items:center;justify-content:center;">{len(hr_pratiche)}</span></div>',
+            unsafe_allow_html=True)
+
+        if hr_pratiche.empty:
+            st.info("Nessuna pratica in attesa di revisione.")
+        else:
+            labels_hr = [f"{r['ID']}  ·  {r['Cliente']}  ·  € {int(r['Valore']):,}" for _, r in hr_pratiche.iterrows()]
+            sel_hr = st.selectbox("Pratica da lavorare", labels_hr, label_visibility="visible", key="op_hr_sel")
+            pratica_hr_id = hr_pratiche.iloc[labels_hr.index(sel_hr)]["ID"]
+            _, btn_hr = st.columns([4,1])
+            with btn_hr:
+                if st.button("Apri fascicolo →", key="op_hr_btn", use_container_width=True, type="primary"):
+                    st.session_state.selected_id = pratica_hr_id
+                    st.session_state.page = "Fascicolo"
+                    st.session_state.back_page = "Dashboard"
+                    st.rerun()
+
+        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+
+        # ── TASK 2: Pending Approval ──
+        pa_pratiche = mie_pratiche[mie_pratiche["Esito"] == "Al responsabile"] if not mie_pratiche.empty else pd.DataFrame()
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">Pending Approval</span>'
+            f'<span style="background:#3B82F6;color:white;font-family:Inter,sans-serif;font-size:12px;'
+            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'align-items:center;justify-content:center;">{len(pa_pratiche)}</span></div>',
+            unsafe_allow_html=True)
+
+        if pa_pratiche.empty:
+            st.info("Nessuna pratica in attesa di approvazione.")
+        else:
+            labels_pa = [f"{r['ID']}  ·  {r['Cliente']}  ·  € {int(r['Valore']):,}" for _, r in pa_pratiche.iterrows()]
+            st.markdown(
+                '<div style="background:#dbeafe;border-radius:8px;padding:14px 18px;">'
+                + "".join([f'<p style="font-family:Inter,sans-serif;font-size:13px;color:#1e40af;margin:4px 0;">{l}</p>' for l in labels_pa])
+                + '</div>', unsafe_allow_html=True)
+
+        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
+
+        # ── TASK 3: On Hold ──
+        oh_pratiche = mie_pratiche[mie_pratiche["Esito"] == "In istruttoria"] if not mie_pratiche.empty else pd.DataFrame()
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+            f'<span style="font-family:Playfair Display,serif;font-size:15px;font-weight:700;'
+            f'text-transform:uppercase;letter-spacing:.18em;color:#1e293b;">On Hold</span>'
+            f'<span style="background:#d97706;color:white;font-family:Inter,sans-serif;font-size:12px;'
+            f'font-weight:700;border-radius:50%;width:24px;height:24px;display:inline-flex;'
+            f'align-items:center;justify-content:center;">{len(oh_pratiche)}</span></div>',
+            unsafe_allow_html=True)
+
+        if oh_pratiche.empty:
+            st.info("Nessuna pratica in supplemento istruttorio.")
+        else:
+            labels_oh = [f"{r['ID']}  ·  {r['Cliente']}  ·  {r.get('Note','')[:60]}" for _, r in oh_pratiche.iterrows()]
+            sel_oh = st.selectbox("Pratica in istruttoria", labels_oh, label_visibility="visible", key="op_oh_sel")
+            pratica_oh_id = oh_pratiche.iloc[labels_oh.index(sel_oh)]["ID"]
+            _, btn_oh = st.columns([4,1])
+            with btn_oh:
+                if st.button("Apri fascicolo →", key="op_oh_btn", use_container_width=True, type="primary"):
+                    st.session_state.selected_id = pratica_oh_id
+                    st.session_state.page = "Fascicolo"
+                    st.session_state.back_page = "Dashboard"
+                    st.rerun()
+
+        st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
 
 elif st.session_state.page == "Reclami attivi":
     data_all = df[df['Stato'] == "Attivo"].reset_index(drop=True)
