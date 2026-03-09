@@ -410,9 +410,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:4px 0 28px 0;">'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -447,9 +447,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:28px 0 24px 0;">'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -490,11 +490,7 @@ if st.session_state.page == "Dashboard":
                     get_db.clear()
                     st.rerun()
 
-        st.markdown(
-            '<div style="margin:24px 0 20px 0;">'
-            '<div style="height:1px;background:#111827;opacity:0.25;border-radius:2px;"></div>'
-            '</div>',
-            unsafe_allow_html=True)
+        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
         # ══ TASK 3: IN ATTESA DI APPROVAZIONE ══
         st.markdown(
@@ -522,11 +518,7 @@ if st.session_state.page == "Dashboard":
                     st.session_state.page = "Dettaglio pratica"
                     st.rerun()
 
-        st.markdown(
-            '<div style="margin:24px 0 20px 0;">'
-            '<div style="height:1px;background:#111827;opacity:0.25;border-radius:2px;"></div>'
-            '</div>',
-            unsafe_allow_html=True)
+        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
         # ══ TASK 4: SUPPLEMENTO ISTRUTTORIO ══
         st.markdown(
@@ -575,9 +567,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:28px 0 24px 0;">'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -644,16 +636,16 @@ if st.session_state.page == "Dashboard":
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
         st.markdown('<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:8px 0 10px 0;">Reclami archiviati nel periodo</p>', unsafe_allow_html=True)
         kb1,kb2,kb3,kb4 = st.columns(4)
-        kpi_stat(kb1, "Da operatore",       len(arch_da_op),   "risposte inviate",             "#fef3c7")
-        kpi_stat(kb2, "Da responsabile",    len(arch_da_resp),  "risposte inviate",             "#fef3c7")
-        kpi_stat(kb3, "Tasso accoglimento", f"{tasso_acc_p}%",  f"{len(arch_accolti)} pratiche","#fef3c7")
-        kpi_stat(kb4, "Tasso rigetto",      f"{tasso_rig_p}%",  f"{len(arch_rigettati)} pratiche","#fef3c7")
+        kpi_stat(kb1, "Da operatore",       len(arch_da_op),   "risposte inviate",             "#fde68a")
+        kpi_stat(kb2, "Da responsabile",    len(arch_da_resp),  "risposte inviate",             "#fde68a")
+        kpi_stat(kb3, "Tasso accoglimento", f"{tasso_acc_p}%",  f"{len(arch_accolti)} pratiche","#fde68a")
+        kpi_stat(kb4, "Tasso rigetto",      f"{tasso_rig_p}%",  f"{len(arch_rigettati)} pratiche","#fde68a")
 
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
         st.markdown('<p style="font-family:Inter,sans-serif;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.12em;margin:8px 0 10px 0;">Valore reclami nel periodo</p>', unsafe_allow_html=True)
         kc1, kc2 = st.columns(2)
-        kpi_large(kc1, "Valore accolti",   f"€ {val_accolti:,}",   f"{len(arch_accolti)} pratiche accolte",    "#bbf7d0")
-        kpi_large(kc2, "Valore rigettati", f"€ {val_rigettati:,}", f"{len(arch_rigettati)} pratiche rigettate", "#fecdd3")
+        kpi_large(kc1, "Valore accolti",   f"€ {val_accolti:,}",   f"{len(arch_accolti)} pratiche accolte",    "#fcd34d")
+        kpi_large(kc2, "Valore rigettati", f"€ {val_rigettati:,}", f"{len(arch_rigettati)} pratiche rigettate", "#fcd34d")
 
         st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
         _, col_btn_stat = st.columns([3, 1])
@@ -689,9 +681,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:4px 0 28px 0;">'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -739,9 +731,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:28px 0 24px 0;">'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -772,9 +764,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:28px 0 24px 0;">'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
@@ -800,9 +792,9 @@ if st.session_state.page == "Dashboard":
 
         st.markdown(
             '<div style="margin:28px 0 24px 0;">'
-            '<div style="height:2px;background:#3B82F6;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '<div style="height:3px;"></div>'
-            '<div style="height:2px;background:#111827;border-radius:2px;"></div>'
+            '<div style="height:2px;background:#bfdbfe;border-radius:2px;"></div>'
             '</div>',
             unsafe_allow_html=True)
 
