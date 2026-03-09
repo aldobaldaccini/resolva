@@ -107,9 +107,7 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap');
 
-.stApp { background-color: #8fa3b8; }
-div[data-testid="stVerticalBlockBorderWrapper"] { background-color: #ffffff !important; }
-div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock"] { background-color: #ffffff !important; }
+.stApp { background-color: #cbd5e1; }
 /* primary buttons = blu RE */
 .stButton button[kind="primary"] { background:#3B82F6 !important; border:none !important; }
 .stButton button[kind="primary"]:hover { background:#2563eb !important; }
