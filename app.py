@@ -113,6 +113,10 @@ st.markdown("""
 .stButton button[kind="primary"]:hover { background:#2563eb !important; }
 [data-testid="stSidebar"] { background-color: #111827 !important; }
 .brand-title { font-family:'Playfair Display',serif; color:#fff; font-size:32px; margin-bottom:0; padding-left:5px; }
+.resolva-watermark { position:fixed; top:24px; right:32px; z-index:999; pointer-events:none;
+    font-family:'Playfair Display',serif; font-size:18px; letter-spacing:6px; user-select:none; }
+.resolva-watermark .wm-re { color:#7B9CC4; opacity:0.4; }
+.resolva-watermark .wm-solva { color:#1e293b; opacity:0.12; }
 .brand-subtitle { font-family:'Inter',sans-serif; color:#94A3B8; font-size:13px; text-transform:uppercase;
     letter-spacing:2px; margin-top:-5px; margin-bottom:20px; padding-left:5px; }
 [data-testid="stSidebar"] .stButton > button {
@@ -311,7 +315,7 @@ st.markdown(f"""
 
 # ── SIDEBAR ──
 with st.sidebar:
-    st.markdown('<p class="brand-title"><span style="color:#7B9CC4;letter-spacing:4px">R E</span><span style="color:rgba(255,255,255,0.25);letter-spacing:4px"> &nbsp;S O L V A</span></p><p class="brand-subtitle">Gestione reclami</p>',
+    st.markdown('<p class="brand-title"><span style="color:#3B82F6;letter-spacing:4px">R E</span><span style="letter-spacing:4px"> &nbsp;S O L V A</span></p><p class="brand-subtitle">Gestione reclami</p>',
                 unsafe_allow_html=True)
     if st.button("Dashboard"): st.session_state.page = "Dashboard"; st.rerun()
     st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
@@ -347,6 +351,12 @@ if search_query and not df.empty:
 # ============================================================
 # 0. DASHBOARD
 # ============================================================
+st.markdown(
+    '<div class="resolva-watermark">'
+    '<span class="wm-re">R E</span>'
+    '<span class="wm-solva">&nbsp;&nbsp;S O L V A</span>'
+    '</div>', unsafe_allow_html=True)
+
 if st.session_state.page == "Dashboard":
     db_now = get_db()
     df_all = pd.DataFrame(db_now) if get_db() else pd.DataFrame()
@@ -756,7 +766,12 @@ if st.session_state.page == "Dashboard":
         st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
 
 elif st.session_state.page == "Reclami attivi":
-    data_all = df[df['Stato'] == "Attivo"].reset_index(drop=True)
+    _ruolo_ra = st.session_state.get("ruolo", "")
+    _nome_ra  = st.session_state.get("nome", "")
+    if _ruolo_ra == "Operatore":
+        data_all = df[(df['Stato'] == "Attivo") & (df['Operatore'] == _nome_ra)].reset_index(drop=True)
+    else:
+        data_all = df[df['Stato'] == "Attivo"].reset_index(drop=True)
 
     st.markdown("""<style>
     /* selectbox hover */
