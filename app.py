@@ -108,6 +108,16 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap');
 
 .stApp { background-color: #cbd5e1; }
+/* input e textarea border blu */
+.stTextInput > div > div > input { border-color: #3B82F6 !important; }
+.stTextInput > div > div > input:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 2px rgba(59,130,246,.2) !important; }
+.stTextArea > div > div > textarea { border-color: #3B82F6 !important; }
+.stTextArea > div > div > textarea:focus { border-color: #3B82F6 !important; box-shadow: 0 0 0 2px rgba(59,130,246,.2) !important; }
+.stTextInput > div > div { border-color: #3B82F6 !important; }
+.stTextArea > div > div { border-color: #3B82F6 !important; }
+/* password field */
+input[type="password"] { border-color: #3B82F6 !important; }
+
 /* primary buttons = blu RE */
 .stButton button[kind="primary"] { background:#3B82F6 !important; border:none !important; }
 .stButton button[kind="primary"]:hover { background:#2563eb !important; }
