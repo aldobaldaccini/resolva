@@ -148,7 +148,7 @@ div[data-testid="stSidebar"] .stTextInput input {
 .badge-accolto       { background:#dcfce7; color:#15803d; }
 .badge-rigettato     { background:#fee2e2; color:#b91c1c; }
 .badge-analisi       { background:#dcfce7; color:#166534; }
-.badge-draft         { background:#86efac; color:#14532d; }
+.badge-draft         { background:#dbeafe; color:#1e40af; }
 .badge-responsabile  { background:#16a34a; color:#ffffff; }
 .badge-istruttoria   { background:#fef9c3; color:#854d0e; }
 
